@@ -24,7 +24,7 @@ export default function Select({ label, children, error, className = "", helperT
         borderRadius: "6px",
         boxShadow: "0 14px 34px rgba(15, 23, 42, .14)",
         "& .MuiMenu-list": { py: 0.5 },
-        "& .MuiMenuItem-root": { minHeight: 30, fontSize: 12, px: 1.25 },
+        "& .MuiMenuItem-root": { minHeight: 36, fontSize: 13, px: 1.5, py: 0.75 },
         "& .MuiMenuItem-root.Mui-selected": { bgcolor: "#eff6ff", color: "#1d4ed8" },
         "& .MuiMenuItem-root.Mui-selected:hover": { bgcolor: "#dbeafe" }
       }

@@ -55,7 +55,7 @@ export default function CompanySettingsPage() {
               <h3>Logo</h3>
               <p>Shown on invoice header.</p>
             </div>
-            {form.logoUrl && <ImagePreview src={form.logoUrl} alt="Company logo" compact />}
+            <ImagePreview src={form.logoUrl || "/logo.webp"} alt="Company logo" compact />
             <FileUpload label={form.logoUrl ? "Replace logo" : "Logo upload"} onChange={(file) => logoMutation.mutate(file)} />
           </div>
           <div className="upload-card">

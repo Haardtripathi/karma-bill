@@ -1,4 +1,6 @@
 const Customer = require("../models/Customer.model");
+const Invoice = require("../models/Invoice.model");
+const mongoose = require("mongoose");
 const asyncHandler = require("../utils/asyncHandler");
 const { successResponse } = require("../utils/apiResponse");
 
@@ -57,10 +59,46 @@ const deleteCustomer = asyncHandler(async (req, res) => {
   successResponse(res, "Customer deactivated", customer);
 });
 
+const getCustomerLedger = asyncHandler(async (req, res) => {
+  const customerId = req.params.id;
+  
+  const customer = await Customer.findById(customerId);
+  if (!customer) {
+    const error = new Error("Customer not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const invoices = await Invoice.find({ "customer.customerId": new mongoose.Types.ObjectId(customerId) }).sort({ invoiceDate: -1 });
+
+  let totalBilled = 0;
+  let totalPaid = 0;
+
+  invoices.forEach(inv => {
+    if (inv.status !== "cancelled") {
+      totalBilled += inv.grandTotal || 0;
+      totalPaid += inv.receivedAmount || 0;
+    }
+  });
+
+  const outstandingBalance = totalBilled - totalPaid;
+
+  successResponse(res, "Customer ledger fetched", {
+    customer,
+    ledgerSummary: {
+      totalBilled,
+      totalPaid,
+      outstandingBalance
+    },
+    invoices
+  });
+});
+
 module.exports = {
   listCustomers,
   createCustomer,
   getCustomerById,
   updateCustomer,
-  deleteCustomer
+  deleteCustomer,
+  getCustomerLedger
 };

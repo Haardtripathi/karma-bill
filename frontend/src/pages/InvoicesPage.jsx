@@ -66,15 +66,15 @@ export default function InvoicesPage() {
               <tbody>{data.items.map((invoice) => (
                 <tr key={invoice._id}>
                   <td><Link to={`/invoices/${invoice._id}`}>{invoice.invoiceCode}</Link></td>
-                  <td>{formatDate(invoice.invoiceDate)}</td><td>{invoice.customer?.name}</td><td>{invoice.customer?.phone}</td><td>{invoice.customer?.vehicleNumber}</td>
+                  <td>{formatDate(invoice.invoiceDate)}</td><td>{invoice.customer?.customerId ? <Link to={`/customers/${invoice.customer.customerId}`}>{invoice.customer.name}</Link> : invoice.customer?.name}</td><td>{invoice.customer?.phone}</td><td>{invoice.customer?.vehicleNumber}</td>
                   <td className="amount-cell">{formatCurrency(invoice.grandTotal)}</td><td className="amount-cell amount-positive">{formatCurrency(invoice.receivedAmount)}</td><td className="amount-cell amount-balance">{formatCurrency(invoice.balanceAmount)}</td><td><span className={statusClass(invoice.status)}>{invoice.status}</span></td>
                   <td className="table-actions">
                     <Link className="btn btn-secondary" to={`/invoices/${invoice._id}`}>View</Link>
-                    <Link className="btn btn-secondary" to={`/invoices/${invoice._id}/edit`}>Edit</Link>
+                    {invoice.status !== "cancelled" && <Link className="btn btn-secondary" to={`/invoices/${invoice._id}/edit`}>Edit</Link>}
                     <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(invoice._id))} />
                     <PdfButton onClick={() => handlePdf(invoice._id)} busy={pdfMutation.isPending} />
                     <WhatsappSendButton onClick={() => whatsappMutation.mutate(invoice._id)} busy={whatsappMutation.isPending} />
-                    <Button variant="danger" onClick={() => cancelMutation.mutate(invoice._id)}>Cancel</Button>
+                    {invoice.status !== "cancelled" && <Button variant="danger" onClick={() => cancelMutation.mutate(invoice._id)}>Cancel</Button>}
                     <Button variant="ghost" onClick={() => deleteMutation.mutate(invoice._id)}>Delete</Button>
                   </td>
                 </tr>

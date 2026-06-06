@@ -8,6 +8,7 @@ const router = express.Router();
 router.post("/", validate(createCustomerSchema), controller.createCustomer);
 router.get("/", controller.listCustomers);
 router.get("/:id", controller.getCustomerById);
+router.get("/:id/ledger", controller.getCustomerLedger);
 router.put("/:id", validate(updateCustomerSchema), controller.updateCustomer);
 router.delete("/:id", controller.deleteCustomer);
 

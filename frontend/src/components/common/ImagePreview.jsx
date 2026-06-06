@@ -8,6 +8,28 @@ export default function ImagePreview({ src, alt = "Uploaded image", compact = fa
 
   if (!src) return null;
 
+  if (compact) {
+    return (
+      <div className="image-preview-compact-row">
+        <a className="image-preview-thumb-link" href={src} target="_blank" rel="noreferrer" title="Open image">
+          {failed ? (
+            <ImageOff size={16} className="text-muted" />
+          ) : (
+            <img className="image-preview-thumb-small" src={src} alt={alt} onError={() => setFailed(true)} />
+          )}
+        </a>
+        <div className="image-preview-actions-compact">
+          {onReplace && <FileUpload compact onChange={onReplace} />}
+          {onRemove && (
+            <Button variant="ghost" className="btn-icon btn-sm text-danger" onClick={onRemove} title="Remove image">
+              <X size={16} />
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`image-preview ${compact ? "image-preview-compact" : ""}`.trim()}>
       <a className="image-preview-frame" href={src} target="_blank" rel="noreferrer" title="Open image">

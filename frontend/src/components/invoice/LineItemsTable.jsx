@@ -76,13 +76,13 @@ export default function LineItemsTable({ lineItems, setLineItems, inventoryItems
                   <td data-label="Unit price"><Input aria-label="Price" type="number" min="0" step="0.01" value={item.unitPrice} onChange={(event) => updateRow(index, { unitPrice: event.target.value })} /></td>
                   <td className="amount-cell" data-label="Line total">{formatCurrency(amount)}</td>
                   <td className="line-item-image-cell" data-label="Image">
-                    <div className="image-cell-stack">
+                    <div className="image-cell-row">
                       {item.imageUrl ? (
                         <ImagePreview compact src={item.imageUrl} alt={(item.itemName || "Line item") + " image"} onReplace={(file) => onUploadImage(file, index)} onRemove={() => removeImage(index)} />
                       ) : (
-                        <FileUpload label="Upload image" onChange={(file) => onUploadImage(file, index)} />
+                        <FileUpload compact onChange={(file) => onUploadImage(file, index)} />
                       )}
-                      <Input aria-label="Image note" placeholder="Image note" value={item.imageNote || ""} onChange={(event) => updateRow(index, { imageNote: event.target.value })} />
+                      <Input aria-label="Image note" placeholder="Note" value={item.imageNote || ""} onChange={(event) => updateRow(index, { imageNote: event.target.value })} />
                     </div>
                   </td>
                   <td className="line-item-actions" data-label="Actions"><Button variant="ghost" className="btn-icon" aria-label="Remove item" onClick={() => removeRow(index)}><Trash2 size={17} /></Button></td>

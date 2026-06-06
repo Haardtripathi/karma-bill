@@ -13,6 +13,7 @@ const uploadRoutes = require("./routes/upload.routes");
 const whatsappRoutes = require("./routes/whatsapp.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const webhookRoutes = require("./routes/webhook.routes");
+const reportRoutes = require("./routes/report.routes");
 const notFoundMiddleware = require("./middlewares/notFound.middleware");
 const errorMiddleware = require("./middlewares/error.middleware");
 const { successResponse } = require("./utils/apiResponse");
@@ -67,6 +68,7 @@ app.use("/api/uploads", uploadRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/webhooks", webhookRoutes);
+app.use("/api/reports", reportRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

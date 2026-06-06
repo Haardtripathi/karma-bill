@@ -45,15 +45,21 @@ export default function InvoiceDetailsPage() {
 
   if (isLoading) return <Loader label="Loading invoice..." />;
   const { invoice, company } = data || {};
+  const isCancelled = invoice?.status === "cancelled";
+
   return (
     <section className="page">
-      <div className="page-header"><div><h2>{invoice?.invoiceCode}</h2><p>Invoice preview and actions.</p></div><div className="actions-row"><Link className="btn btn-secondary" to="/invoices">Back</Link><Link className="btn btn-secondary" to={`/invoices/${id}/edit`}>Edit</Link></div></div>
+      <div className="page-header"><div><h2>{invoice?.invoiceCode}</h2><p>Invoice preview and actions.</p></div><div className="actions-row"><Link className="btn btn-secondary" to="/invoices">Back</Link>{!isCancelled && <Link className="btn btn-secondary" to={`/invoices/${id}/edit`}>Edit</Link>}</div></div>
       <div className="panel actions-row no-print invoice-action-bar">
         <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(id))} />
         <PdfButton onClick={handlePdf} busy={pdfMutation.isPending} />
         <WhatsappSendButton onClick={() => whatsappMutation.mutate()} busy={whatsappMutation.isPending} />
-        <Button variant="secondary" onClick={() => setPaymentOpen(true)}>Add payment</Button>
-        <Button variant="danger" onClick={() => cancelMutation.mutate()}>Cancel invoice</Button>
+        {!isCancelled && (
+          <>
+            <Button variant="secondary" onClick={() => setPaymentOpen(true)}>Add payment</Button>
+            <Button variant="danger" onClick={() => cancelMutation.mutate()}>Cancel invoice</Button>
+          </>
+        )}
         <a className="btn btn-secondary" href={invoicePdfUrl(id)} target="_blank" rel="noreferrer">Open PDF</a>
       </div>
       <InvoiceTemplate invoice={invoice} company={company} />

@@ -12,6 +12,10 @@ import EditInvoicePage from "../pages/EditInvoicePage.jsx";
 import InvoiceDetailsPage from "../pages/InvoiceDetailsPage.jsx";
 import InvoicePrintPage from "../pages/InvoicePrintPage.jsx";
 
+import CustomerLedgerPage from "../pages/CustomerLedgerPage.jsx";
+
+import ReportsPage from "../pages/ReportsPage.jsx";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -23,6 +27,8 @@ export default function AppRoutes() {
         <Route path="/customers" element={<CustomersPage />} />
         <Route path="/customers/new" element={<CustomerFormPage />} />
         <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
+        <Route path="/customers/:id" element={<CustomerLedgerPage />} />
+        <Route path="/customers/:id/ledger" element={<CustomerLedgerPage />} />
         <Route path="/inventory-items" element={<InventoryItemsPage />} />
         <Route path="/inventory-items/new" element={<InventoryItemFormPage />} />
         <Route path="/inventory-items/:id/edit" element={<InventoryItemFormPage />} />
@@ -30,6 +36,7 @@ export default function AppRoutes() {
         <Route path="/invoices/new" element={<CreateInvoicePage />} />
         <Route path="/invoices/:id" element={<InvoiceDetailsPage />} />
         <Route path="/invoices/:id/edit" element={<EditInvoicePage />} />
+        <Route path="/reports" element={<ReportsPage />} />
       </Route>
     </Routes>
   );

@@ -1,5 +1,18 @@
 const { formatDate } = require("../utils/date.util");
 const amountToWords = require("../utils/amountToWords.util");
+const fs = require("fs");
+const path = require("path");
+
+let defaultLogoBase64 = "";
+try {
+  const logoPath = path.join(__dirname, "../../../frontend/public/logo.webp");
+  if (fs.existsSync(logoPath)) {
+    const logoBuffer = fs.readFileSync(logoPath);
+    defaultLogoBase64 = `data:image/webp;base64,${logoBuffer.toString("base64")}`;
+  }
+} catch (err) {
+  console.error("Failed to load default logo", err);
+}
 
 const escapeHtml = (value) =>
   String(value ?? "")
@@ -40,10 +53,12 @@ const imageLink = (item) =>
     ? `<a class="image-link" href="${escapeHtml(item.imageUrl)}" target="_blank">View Image</a>`
     : "";
 
-const logoMarkup = (company) =>
-  hasUsableImage(company.logoUrl)
-    ? `<img class="invoice-logo-image" src="${escapeHtml(company.logoUrl)}" alt="Company logo" />`
+const logoMarkup = (company) => {
+  const logoUrl = company.logoUrl || defaultLogoBase64;
+  return logoUrl
+    ? `<img class="invoice-logo-image" src="${escapeHtml(logoUrl)}" alt="Company logo" />`
     : `<div class="invoice-logo-circle"></div>`;
+};
 
 const signatureMarkup = (company) =>
   hasUsableImage(company.signatureImageUrl)
@@ -56,7 +71,8 @@ const signatureMarkup = (company) =>
 const invoiceTemplate = ({ invoice, company }) => {
   const totalQuantity = invoice.lineItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const hasDiscount = Number(invoice.discountAmount || 0) > 0;
-  const hasBrandLogo = hasUsableImage(company.logoUrl);
+  const logoUrl = company.logoUrl || defaultLogoBase64;
+  const hasBrandLogo = !!logoUrl;
   const rows = invoice.lineItems
     .map(
       (item, index) => `

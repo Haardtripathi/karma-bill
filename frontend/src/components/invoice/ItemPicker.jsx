@@ -56,18 +56,18 @@ export default function ItemPicker({ items = [], itemId = "", itemName = "", onS
           sx: {
             py: 0.5,
             "& .MuiAutocomplete-option": {
-              minHeight: 30,
-              px: 1.25,
-              py: 0.5,
+              minHeight: 36,
+              px: 1.5,
+              py: 0.75,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 1,
-              fontSize: 12
+              fontSize: 13
             },
             "& .MuiAutocomplete-option small": {
               color: "#667085",
-              fontSize: 11,
+              fontSize: 12,
               fontVariantNumeric: "tabular-nums"
             }
           }

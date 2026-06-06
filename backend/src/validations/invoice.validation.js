@@ -8,7 +8,7 @@ const customerSnapshot = z.object({
   _id: z.string().optional().or(z.literal("")),
   name: z.string().trim().min(1, "Customer name is required").optional(),
   phone: z.string().trim().optional().or(z.literal("")),
-  email: z.string().email().optional().or(z.literal("")),
+  email: z.string().trim().email("Email must be valid").or(z.literal("")).optional(),
   address: z.string().optional().default(""),
   vehicleNumber: z.string().optional().default(""),
   vehicleKm: z.string().optional().default("")

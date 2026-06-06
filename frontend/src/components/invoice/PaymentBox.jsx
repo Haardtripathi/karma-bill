@@ -3,7 +3,7 @@ import Select from "../common/Select.jsx";
 
 export default function PaymentBox({ paymentMode, receivedAmount, onChange }) {
   return (
-    <div className="form-grid two payment-box">
+    <div className="form-grid payment-box">
       <Select label="Payment Mode" value={paymentMode} onChange={(event) => onChange({ paymentMode: event.target.value })}>
         {['Cash', 'UPI', 'Card', 'Bank Transfer', 'Cheque', 'Other'].map((mode) => <option key={mode}>{mode}</option>)}
       </Select>

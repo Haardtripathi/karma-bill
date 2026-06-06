@@ -1,7 +1,10 @@
-import Select from "../common/Select.jsx";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
 import Input from "../common/Input.jsx";
 
 export default function CustomerPicker({ customers = [], selectedCustomerId, quickCustomer, onSelect, onQuickChange }) {
+  const selectedCustomer = customers.find((c) => c._id === selectedCustomerId) || null;
+
   return (
     <div className="panel-section customer-picker">
       <div className="section-heading">
@@ -10,13 +13,68 @@ export default function CustomerPicker({ customers = [], selectedCustomerId, qui
           <p>Select an existing customer or type the details for this invoice. Vehicle number, KM and contact details stay editable for each visit.</p>
         </div>
       </div>
-      <Select label="Existing Customer" value={selectedCustomerId} onChange={(event) => onSelect(event.target.value)}>
-        <option value="">Create quick customer</option>
-        {customers.map((customer) => (
-          <option key={customer._id} value={customer._id}>{customer.name} - {customer.phone}</option>
-        ))}
-      </Select>
-      <div className="form-grid two">
+      <Autocomplete
+        className="field customer-combobox"
+        size="small"
+        fullWidth
+        options={customers}
+        value={selectedCustomer}
+        getOptionLabel={(option) => option ? `${option.name} - ${option.phone}` : ""}
+        isOptionEqualToValue={(option, value) => option._id === value?._id}
+        onChange={(event, value) => {
+          onSelect(value ? value._id : "");
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Search Existing Customer"
+            variant="outlined"
+            placeholder="Type name or phone to search..."
+            slotProps={{
+              ...params.slotProps,
+              htmlInput: {
+                ...params.slotProps?.htmlInput,
+                "aria-label": "Search Existing Customer"
+              }
+            }}
+          />
+        )}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 0.5,
+              border: "1px solid #dce3ec",
+              borderRadius: "6px",
+              boxShadow: "0 14px 34px rgba(15, 23, 42, .14)"
+            }
+          },
+          listbox: {
+            sx: {
+              py: 0.5,
+              "& .MuiAutocomplete-option": {
+                minHeight: 36,
+                px: 1.5,
+                py: 0.75,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                gap: 0.25,
+                fontSize: 13
+              }
+            }
+          }
+        }}
+        renderOption={(props, option) => {
+          const { key, ...optionProps } = props;
+          return (
+            <li key={key} {...optionProps}>
+              <strong style={{ display: "block" }}>{option.name}</strong>
+              <span style={{ color: "#667085", fontSize: 11 }}>{option.phone}</span>
+            </li>
+          );
+        }}
+      />
+      <div className="form-grid" style={{ marginTop: "16px" }}>
         <Input label="Name" value={quickCustomer.name} onChange={(event) => onQuickChange({ name: event.target.value })} />
         <Input label="Phone" value={quickCustomer.phone} onChange={(event) => onQuickChange({ phone: event.target.value })} />
         <Input label="Email" value={quickCustomer.email || ""} onChange={(event) => onQuickChange({ email: event.target.value })} />

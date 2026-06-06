@@ -62,7 +62,7 @@ export default function DashboardPage() {
                   <tr key={invoice._id}>
                     <td><Link to={`/invoices/${invoice._id}`}>{invoice.invoiceCode}</Link></td>
                     <td>{formatDate(invoice.invoiceDate)}</td>
-                    <td>{invoice.customer?.name}</td>
+                    <td>{invoice.customer?.customerId ? <Link to={`/customers/${invoice.customer.customerId}`}>{invoice.customer.name}</Link> : invoice.customer?.name}</td>
                     <td className="amount-cell">{formatCurrency(invoice.grandTotal)}</td>
                     <td className="amount-cell amount-positive">{formatCurrency(invoice.receivedAmount)}</td>
                     <td className="amount-cell amount-balance">{formatCurrency(invoice.balanceAmount)}</td>

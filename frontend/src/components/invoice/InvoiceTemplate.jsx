@@ -28,19 +28,18 @@ export default function InvoiceTemplate({ invoice, company }) {
   if (!invoice || !company) return null;
   const totalQuantity = invoice.lineItems?.reduce((sum, item) => sum + Number(item.quantity || 0), 0) || 0;
   const hasDiscount = Number(invoice.discountAmount || 0) > 0;
-  const hasBrandLogo = hasUsableImage(company.logoUrl);
+  const logoUrl = company.logoUrl || "/logo.webp";
+  const hasBrandLogo = !!logoUrl;
 
   return (
     <article className="invoice-template">
       <header className="invoice-title">{company.invoiceTitle || "Tax Invoice"}</header>
 
       <section className="invoice-company">
-        <div className={`invoice-logo-area${hasBrandLogo ? " brand-logo-area" : ""}`}>
-          {hasBrandLogo ? <img className="invoice-logo-image" src={company.logoUrl} alt="Company logo" /> : <div className="invoice-logo-circle" />}
-          {!hasBrandLogo && <div className="invoice-logo-text">KARMA</div>}
+        <div className={`invoice-logo-area brand-logo-area`}>
+          <img className="invoice-logo-image" src={logoUrl} alt="Company logo" />
         </div>
-        <div className={`invoice-company-info${hasBrandLogo ? " no-heading" : ""}`}>
-          {!hasBrandLogo && <h1>{company.businessName || "KARMA AUTOMOBILES"}</h1>}
+        <div className="invoice-company-info no-heading">
           <p>{companyAddress(company)}</p>
           <div className="invoice-company-contact">
             <span><strong>Phone:</strong> {company.phone}</span>

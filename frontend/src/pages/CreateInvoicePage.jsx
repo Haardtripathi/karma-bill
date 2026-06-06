@@ -116,14 +116,20 @@ export default function CreateInvoicePage() {
       <div className="page-header"><div><h2>Create Invoice</h2><p>Select customer, add service/parts, collect payment and save.</p></div><Link className="btn btn-secondary" to="/invoices">Back</Link></div>
       <div className="panel page">
         <CustomerPicker customers={customers} selectedCustomerId={selectedCustomerId} quickCustomer={quickCustomer} onSelect={handleCustomerSelect} onQuickChange={(patch) => setQuickCustomer((current) => ({ ...current, ...patch }))} />
-        <div className="form-grid two"><Input label="Invoice date" type="date" value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} /><Input label="Discount" type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} /></div>
+        <div className="form-grid" style={{ margin: "16px 0" }}><Input label="Invoice date" type="date" value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} /><Input label="Discount" type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} /></div>
         <LineItemsTable lineItems={lineItems} setLineItems={setLineItems} inventoryItems={inventoryItems} onUploadImage={uploadImage} />
-        <Textarea label="Description" value={description} onChange={(event) => setDescription(event.target.value)} />
         <PaymentBox paymentMode={paymentMode} receivedAmount={receivedAmount} onChange={(patch) => { if (patch.paymentMode !== undefined) setPaymentMode(patch.paymentMode); if (patch.receivedAmount !== undefined) setReceivedAmount(patch.receivedAmount); }} />
-        <InvoiceTotalsBox subTotal={subTotal} discountAmount={discountAmount} receivedAmount={receivedAmount} />
-        <div className="form-actions">
-          <Button onClick={() => save("unpaid")} disabled={createMutation.isPending}>Save invoice</Button>
+        <div className="invoice-summary-layout">
+          <div className="invoice-summary-desc">
+            <Textarea label="Description" value={description} onChange={(event) => setDescription(event.target.value)} />
+          </div>
+          <div className="invoice-summary-totals">
+            <InvoiceTotalsBox subTotal={subTotal} discountAmount={discountAmount} receivedAmount={receivedAmount} />
+          </div>
+        </div>
+        <div className="form-actions right-actions" style={{ marginTop: "20px" }}>
           <Button variant="secondary" onClick={() => save("draft")} disabled={createMutation.isPending}>Save draft</Button>
+          <Button onClick={() => save("unpaid")} disabled={createMutation.isPending}>Save invoice</Button>
         </div>
         {savedInvoice && <div className="saved-invoice-actions">
           <Link className="btn btn-secondary" to={`/invoices/${savedInvoice._id}`}>View Invoice</Link>
