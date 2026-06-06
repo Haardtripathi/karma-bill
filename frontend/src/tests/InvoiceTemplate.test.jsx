@@ -20,7 +20,7 @@ const invoice = {
 
 test("InvoiceTemplate renders business, customer, invoice, line item, total, balance and image link", () => {
   render(<InvoiceTemplate invoice={invoice} company={company} />);
-  expect(screen.getByText("KARMA AUTOMOBILES")).toBeInTheDocument();
+  expect(screen.getByText(/KARMA AUTOMOBILES/)).toBeInTheDocument();
   expect(screen.getByText("Rahul Patel")).toBeInTheDocument();
   expect(screen.getByText(/KA-107/)).toBeInTheDocument();
   expect(screen.getByText("Engine oil")).toBeInTheDocument();

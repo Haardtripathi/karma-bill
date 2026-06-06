@@ -62,12 +62,21 @@ export default function InvoicesPage() {
         {isLoading ? <Loader /> : !data?.items?.length ? <EmptyState title="No invoices found" /> : (
           <div className="table-scroll">
             <table className="data-table">
-              <thead><tr><th>Invoice no</th><th>Date</th><th>Customer</th><th>Phone</th><th>Vehicle no</th><th className="amount-heading">Total</th><th className="amount-heading">Received</th><th className="amount-heading">Balance</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Invoice no</th><th>Date</th><th>Customer</th><th>Phone</th><th>Vehicle no</th><th className="amount-heading">Total</th><th className="amount-heading">Received</th><th className="amount-heading">Balance</th><th>Status</th><th>WhatsApp</th><th>Actions</th></tr></thead>
               <tbody>{data.items.map((invoice) => (
                 <tr key={invoice._id}>
                   <td><Link to={`/invoices/${invoice._id}`}>{invoice.invoiceCode}</Link></td>
                   <td>{formatDate(invoice.invoiceDate)}</td><td>{invoice.customer?.customerId ? <Link to={`/customers/${invoice.customer.customerId}`}>{invoice.customer.name}</Link> : invoice.customer?.name}</td><td>{invoice.customer?.phone}</td><td>{invoice.customer?.vehicleNumber}</td>
                   <td className="amount-cell">{formatCurrency(invoice.grandTotal)}</td><td className="amount-cell amount-positive">{formatCurrency(invoice.receivedAmount)}</td><td className="amount-cell amount-balance">{formatCurrency(invoice.balanceAmount)}</td><td><span className={statusClass(invoice.status)}>{invoice.status}</span></td>
+                  <td>
+                    {invoice.whatsapp?.sentCount > 0 ? (
+                      <span className={`status-badge whatsapp-badge-${invoice.whatsapp.lastStatus || "queued"}`}>
+                        {invoice.whatsapp.lastStatus || "queued"}
+                      </span>
+                    ) : (
+                      <span className="status-badge" style={{ color: "var(--muted)", background: "var(--soft)", borderColor: "var(--line)" }}>Unsent</span>
+                    )}
+                  </td>
                   <td className="table-actions">
                     <Link className="btn btn-secondary" to={`/invoices/${invoice._id}`}>View</Link>
                     {invoice.status !== "cancelled" && <Link className="btn btn-secondary" to={`/invoices/${invoice._id}/edit`}>Edit</Link>}

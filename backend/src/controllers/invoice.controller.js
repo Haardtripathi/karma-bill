@@ -36,7 +36,8 @@ const buildCustomerSnapshot = async (body) => {
       error.statusCode = 404;
       throw error;
     }
-    return {
+    let isUpdated = false;
+    const snapshot = {
       customerId: customer._id,
       name: valueOrDefault(source.name, customer.name),
       phone: valueOrDefault(source.phone, customer.phone),
@@ -45,6 +46,22 @@ const buildCustomerSnapshot = async (body) => {
       vehicleNumber: valueOrDefault(source.vehicleNumber, customer.vehicleNumber),
       vehicleKm: valueOrDefault(source.vehicleKm, customer.vehicleKm)
     };
+
+    const fieldsToSync = ["name", "phone", "email", "address", "vehicleNumber", "vehicleKm"];
+    for (const field of fieldsToSync) {
+      const snapVal = snapshot[field] || "";
+      const custVal = customer[field] || "";
+      if (snapVal !== custVal) {
+        customer[field] = snapVal;
+        isUpdated = true;
+      }
+    }
+
+    if (isUpdated) {
+      await customer.save();
+    }
+
+    return snapshot;
   }
 
   if (!source.name || !source.phone) {

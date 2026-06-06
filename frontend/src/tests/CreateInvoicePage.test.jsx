@@ -56,7 +56,7 @@ test("selected customer stays editable and saves invoice-specific vehicle detail
 
   renderWithProviders(<CreateInvoicePage />, { route: "/invoices/new" });
   await screen.findByText("Customer");
-  await user.click(screen.getByRole("combobox", { name: "Existing Customer" }));
+  await user.click(screen.getByRole("combobox", { name: "Search Existing Customer" }));
   await user.click(await screen.findByRole("option", { name: /Rahul Patel/ }));
 
   expect(screen.getByLabelText("Name")).toHaveValue("Rahul Patel");
