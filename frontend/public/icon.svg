@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#102a43"/>
+  <rect x="72" y="72" width="368" height="368" rx="64" fill="#f6c453"/>
+  <text x="256" y="292" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="132" font-weight="900" fill="#102a43">KA</text>
+  <text x="256" y="350" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#102a43">BILLING</text>
+</svg>

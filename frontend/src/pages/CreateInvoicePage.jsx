@@ -1,0 +1,137 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import Button from "../components/common/Button.jsx";
+import Input from "../components/common/Input.jsx";
+import Textarea from "../components/common/Textarea.jsx";
+import Loader from "../components/common/Loader.jsx";
+import CustomerPicker from "../components/invoice/CustomerPicker.jsx";
+import LineItemsTable from "../components/invoice/LineItemsTable.jsx";
+import InvoiceTotalsBox from "../components/invoice/InvoiceTotalsBox.jsx";
+import PaymentBox from "../components/invoice/PaymentBox.jsx";
+import PrintButton from "../components/invoice/PrintButton.jsx";
+import PdfButton from "../components/invoice/PdfButton.jsx";
+import WhatsappSendButton from "../components/invoice/WhatsappSendButton.jsx";
+import { getCustomers } from "../api/customerApi.js";
+import { getInventoryItems } from "../api/inventoryItemApi.js";
+import { createInvoice, generateInvoicePdf, invoicePdfUrl, sendInvoiceWhatsapp } from "../api/invoiceApi.js";
+import { uploadInvoiceImage } from "../api/uploadApi.js";
+import { roundMoney } from "../utils/currency.js";
+import { toInputDate } from "../utils/date.js";
+import { closePdfPlaceholder, openPdfPlaceholder, openPdfUrl, showPdfUrl } from "../utils/pdfWindow.js";
+
+const emptyCustomer = { name: "", phone: "", email: "", address: "", vehicleNumber: "", vehicleKm: "" };
+const emptyLine = { itemId: "", itemName: "", hsnSac: "", quantity: 1, unitPrice: 0, imageUrl: "", imagePublicId: "", imageNote: "" };
+
+export default function CreateInvoicePage() {
+  const queryClient = useQueryClient();
+  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [quickCustomer, setQuickCustomer] = useState(emptyCustomer);
+  const [invoiceDate, setInvoiceDate] = useState(toInputDate());
+  const [lineItems, setLineItems] = useState([emptyLine]);
+  const [description, setDescription] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [paymentMode, setPaymentMode] = useState("Cash");
+  const [receivedAmount, setReceivedAmount] = useState(0);
+  const [savedInvoice, setSavedInvoice] = useState(null);
+  const { data: customersData, isLoading: customersLoading } = useQuery({ queryKey: ["customers", "invoice-picker"], queryFn: () => getCustomers({ limit: 100 }) });
+  const { data: itemsData, isLoading: itemsLoading } = useQuery({ queryKey: ["inventory-items", "invoice-picker"], queryFn: () => getInventoryItems({ limit: 200 }) });
+  const customers = customersData?.items || [];
+  const inventoryItems = itemsData?.items || [];
+
+  const subTotal = useMemo(() => lineItems.reduce((sum, item) => sum + roundMoney(Number(item.quantity || 0) * Number(item.unitPrice || 0)), 0), [lineItems]);
+  const createMutation = useMutation({
+    mutationFn: createInvoice,
+    onSuccess: (invoice) => { setSavedInvoice(invoice); toast.success("Invoice saved"); queryClient.invalidateQueries({ queryKey: ["invoices"] }); queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }); },
+    onError: (error) => toast.error(error.message)
+  });
+  const pdfMutation = useMutation({ mutationFn: generateInvoicePdf });
+  const whatsappMutation = useMutation({ mutationFn: sendInvoiceWhatsapp, onSuccess: () => toast.success("WhatsApp message sent"), onError: (error) => toast.error(error.message) });
+
+  const uploadImage = async (file, index) => {
+    try {
+      const uploaded = await uploadInvoiceImage(file);
+      setLineItems((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, imageUrl: uploaded.url, imagePublicId: uploaded.publicId } : row));
+      toast.success("Image uploaded");
+    } catch (error) { toast.error(error.message); }
+  };
+
+  const handleCustomerSelect = (id) => {
+    setSelectedCustomerId(id);
+    const customer = customers.find((item) => item._id === id);
+    if (!customer) {
+      setQuickCustomer(emptyCustomer);
+      return;
+    }
+    setQuickCustomer({
+      name: customer.name || "",
+      phone: customer.phone || "",
+      email: customer.email || "",
+      address: customer.address || "",
+      vehicleNumber: customer.vehicleNumber || "",
+      vehicleKm: customer.vehicleKm || ""
+    });
+  };
+
+  const buildPayload = (status = "unpaid") => ({
+    customerId: selectedCustomerId || undefined,
+    customer: selectedCustomerId ? { ...quickCustomer, customerId: selectedCustomerId } : quickCustomer,
+    invoiceDate,
+    lineItems: lineItems.map((item) => ({ ...item, amount: roundMoney(Number(item.quantity || 0) * Number(item.unitPrice || 0)) })),
+    discountAmount: Number(discountAmount || 0),
+    receivedAmount: Number(receivedAmount || 0),
+    paymentMode,
+    description,
+    status
+  });
+
+  const save = (status) => {
+    const activeItems = lineItems.filter((item) => item.itemName && Number(item.quantity) > 0);
+    if (!quickCustomer.name || !quickCustomer.phone) return toast.error("Customer name and phone are required");
+    if (!activeItems.length) return toast.error("At least one line item is required");
+    createMutation.mutate({ ...buildPayload(status), lineItems: activeItems });
+  };
+
+  const handlePdf = () => {
+    if (!savedInvoice?._id) return;
+    const invoiceId = savedInvoice._id;
+    const popup = openPdfPlaceholder();
+    pdfMutation.mutate(invoiceId, {
+      onSuccess: (invoice) => {
+        setSavedInvoice(invoice);
+        toast.success("PDF generated");
+        showPdfUrl(popup, invoicePdfUrl(invoiceId));
+      },
+      onError: (error) => {
+        closePdfPlaceholder(popup);
+        toast.error(error.message);
+      }
+    });
+  };
+
+  if (customersLoading || itemsLoading) return <Loader label="Loading invoice form..." />;
+  return (
+    <section className="page">
+      <div className="page-header"><div><h2>Create Invoice</h2><p>Select customer, add service/parts, collect payment and save.</p></div><Link className="btn btn-secondary" to="/invoices">Back</Link></div>
+      <div className="panel page">
+        <CustomerPicker customers={customers} selectedCustomerId={selectedCustomerId} quickCustomer={quickCustomer} onSelect={handleCustomerSelect} onQuickChange={(patch) => setQuickCustomer((current) => ({ ...current, ...patch }))} />
+        <div className="form-grid two"><Input label="Invoice date" type="date" value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} /><Input label="Discount" type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} /></div>
+        <LineItemsTable lineItems={lineItems} setLineItems={setLineItems} inventoryItems={inventoryItems} onUploadImage={uploadImage} />
+        <Textarea label="Description" value={description} onChange={(event) => setDescription(event.target.value)} />
+        <PaymentBox paymentMode={paymentMode} receivedAmount={receivedAmount} onChange={(patch) => { if (patch.paymentMode !== undefined) setPaymentMode(patch.paymentMode); if (patch.receivedAmount !== undefined) setReceivedAmount(patch.receivedAmount); }} />
+        <InvoiceTotalsBox subTotal={subTotal} discountAmount={discountAmount} receivedAmount={receivedAmount} />
+        <div className="form-actions">
+          <Button onClick={() => save("unpaid")} disabled={createMutation.isPending}>Save invoice</Button>
+          <Button variant="secondary" onClick={() => save("draft")} disabled={createMutation.isPending}>Save draft</Button>
+        </div>
+        {savedInvoice && <div className="saved-invoice-actions">
+          <Link className="btn btn-secondary" to={`/invoices/${savedInvoice._id}`}>View Invoice</Link>
+          <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(savedInvoice._id))} />
+          <PdfButton onClick={handlePdf} busy={pdfMutation.isPending} />
+          <WhatsappSendButton onClick={() => whatsappMutation.mutate(savedInvoice._id)} busy={whatsappMutation.isPending} />
+        </div>}
+      </div>
+    </section>
+  );
+}

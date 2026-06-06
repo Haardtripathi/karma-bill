@@ -1,0 +1,19 @@
+{
+  "name": "KARMA AUTOMOBILES Billing",
+  "short_name": "KA Billing",
+  "description": "Billing, inventory, invoice PDF and WhatsApp workflow for KARMA AUTOMOBILES.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f7fb",
+  "theme_color": "#102a43",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Create Invoice", "short_name": "Invoice", "url": "/invoices/new" },
+    { "name": "Customers", "short_name": "Customers", "url": "/customers" },
+    { "name": "Inventory", "short_name": "Inventory", "url": "/inventory-items" }
+  ]
+}
