@@ -38,6 +38,36 @@ startxref
   return Buffer.from(pdf);
 };
 
+const puppeteer = require("puppeteer");
+let sharedBrowser = null;
+
+const getSharedBrowser = async () => {
+  if (sharedBrowser && sharedBrowser.connected) {
+    return sharedBrowser;
+  }
+  
+  // If disconnected or not initialized, launch a new one
+  if (sharedBrowser) {
+    try {
+      await sharedBrowser.close();
+    } catch (e) {}
+    sharedBrowser = null;
+  }
+
+  const executablePath = getChromeExecutablePath();
+  sharedBrowser = await puppeteer.launch({
+    headless: "new",
+    executablePath,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+  });
+
+  sharedBrowser.on("disconnected", () => {
+    sharedBrowser = null;
+  });
+
+  return sharedBrowser;
+};
+
 const generatePdfBuffer = async (invoice, company) => {
   const html = invoiceTemplate({ invoice, company });
 
@@ -45,24 +75,22 @@ const generatePdfBuffer = async (invoice, company) => {
     return minimalPdf(`${invoice.invoiceCode} ${invoice.customer?.name || ""}`);
   }
 
-  let browser;
+  let page;
   try {
-    const puppeteer = require("puppeteer");
-    const executablePath = getChromeExecutablePath();
-    browser = await puppeteer.launch({
-      headless: "new",
-      executablePath,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-    });
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    const browser = await getSharedBrowser();
+    page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle2", timeout: 10000 });
     const pdf = await page.pdf({ format: "A4", printBackground: true, margin: { top: "10mm", right: "10mm", bottom: "10mm", left: "10mm" } });
     return Buffer.from(pdf);
   } catch (error) {
     error.message = `PDF generation failed: ${error.message}`;
     throw error;
   } finally {
-    if (browser) await browser.close();
+    if (page) {
+      try {
+        await page.close();
+      } catch (e) {}
+    }
   }
 };
 

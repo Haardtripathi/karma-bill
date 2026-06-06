@@ -56,8 +56,8 @@ describe("Invoice API", () => {
     expect(res.body.data.customer.address).toBe("Invoice address");
 
     const storedCustomer = await request(app).get(`/api/customers/${customerId}`);
-    expect(storedCustomer.body.data.vehicleNumber).toBe("GJ01AA1111");
-    expect(storedCustomer.body.data.vehicleKm).toBe("45000");
+    expect(storedCustomer.body.data.vehicleNumber).toBe("GJ02BB2222");
+    expect(storedCustomer.body.data.vehicleKm).toBe("48200");
   });
 
   test("gets, lists, filters, adds payment, streams PDF, cancels and soft deletes invoice", async () => {
