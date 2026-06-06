@@ -15,6 +15,7 @@ import WhatsappSendButton from "../components/invoice/WhatsappSendButton.jsx";
 import { addInvoicePayment, cancelInvoice, generateInvoicePdf, getInvoicePrintData, invoicePdfUrl, sendInvoiceWhatsapp } from "../api/invoiceApi.js";
 import { toInputDate } from "../utils/date.js";
 import { closePdfPlaceholder, openPdfPlaceholder, openPdfUrl, showPdfUrl } from "../utils/pdfWindow.js";
+import { MessageCircle } from "lucide-react";
 
 export default function InvoiceDetailsPage() {
   const { id } = useParams();
@@ -62,6 +63,27 @@ export default function InvoiceDetailsPage() {
         )}
         <a className="btn btn-secondary" href={invoicePdfUrl(id)} target="_blank" rel="noreferrer">Open PDF</a>
       </div>
+      {invoice?.whatsapp?.sentCount > 0 && (
+        <div className={`panel whatsapp-status-card status-${invoice.whatsapp.lastStatus || "queued"} no-print`}>
+          <div className="status-header">
+            <div className="status-title-row">
+              <span className="whatsapp-icon"><MessageCircle size={17} /></span>
+              <strong>WhatsApp Delivery Status</strong>
+              <span className={`status-badge whatsapp-badge-${invoice.whatsapp.lastStatus || "queued"}`}>
+                {invoice.whatsapp.lastStatus || "queued"}
+              </span>
+            </div>
+            <span className="status-time">
+              Last Sent: {new Date(invoice.whatsapp.lastSentAt).toLocaleString()} ({invoice.whatsapp.sentCount} message{invoice.whatsapp.sentCount > 1 ? "s" : ""} sent)
+            </span>
+          </div>
+          {invoice.whatsapp.lastError && (
+            <div className="status-error">
+              <strong>Delivery Error:</strong> {invoice.whatsapp.lastError}
+            </div>
+          )}
+        </div>
+      )}
       <InvoiceTemplate invoice={invoice} company={company} />
       <Modal open={paymentOpen} title="Add payment" onClose={() => setPaymentOpen(false)}>
         <div className="form-grid two">

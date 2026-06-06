@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "test": "jest --runInBand",
     "seed:company": "node src/seed/seedCompanySettings.js",
-    "seed:items": "node src/seed/seedInventoryItems.js"
+    "seed:items": "node src/seed/seedInventoryItems.js",
+    "postinstall": "puppeteer browsers install chrome"
   },
   "keywords": ["billing", "mern", "invoice"],
   "author": "",
