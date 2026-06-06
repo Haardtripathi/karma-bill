@@ -45,12 +45,12 @@ const getSharedBrowser = async () => {
   if (sharedBrowser && sharedBrowser.connected) {
     return sharedBrowser;
   }
-  
+
   // If disconnected or not initialized, launch a new one
   if (sharedBrowser) {
     try {
       await sharedBrowser.close();
-    } catch (e) {}
+    } catch (e) { }
     sharedBrowser = null;
   }
 
@@ -79,7 +79,13 @@ const generatePdfBuffer = async (invoice, company) => {
   try {
     const browser = await getSharedBrowser();
     page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle2", timeout: 10000 });
+    try {
+      await page.setContent(html, { waitUntil: "networkidle2", timeout: 60000 });
+    } catch (err) {
+      // Fallback to minimal PDF if content fails to load within timeout
+      console.warn('Page setContent timeout or error, falling back to minimal PDF:', err.message);
+      return minimalPdf(`${invoice.invoiceCode} ${invoice.customer?.name || ""}`);
+    }
     const pdf = await page.pdf({ format: "A4", printBackground: true, margin: { top: "10mm", right: "10mm", bottom: "10mm", left: "10mm" } });
     return Buffer.from(pdf);
   } catch (error) {
@@ -89,7 +95,7 @@ const generatePdfBuffer = async (invoice, company) => {
     if (page) {
       try {
         await page.close();
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 };
