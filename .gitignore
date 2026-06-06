@@ -4,3 +4,6 @@ node_modules
 backend/uploads
 frontend/dist
 coverage
+.env
+.env.bak
+*.env
