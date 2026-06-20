@@ -112,7 +112,6 @@ const prepareLineItems = async (items) => {
     prepared.push({
       itemId,
       itemName: item.itemName || inventory?.name,
-      hsnSac: item.hsnSac || inventory?.hsnSac || "",
       quantity: Number(item.quantity || 0),
       unitPrice: Number(item.unitPrice ?? inventory?.defaultPrice ?? 0),
       amount: Number(item.amount || 0),
@@ -177,7 +176,7 @@ const listInvoices = asyncHandler(async (req, res) => {
   }
   if (req.query.search) {
     const regex = new RegExp(req.query.search, "i");
-    filter.$or = [{ invoiceCode: regex }, { "customer.name": regex }, { "customer.phone": regex }, { "customer.vehicleNumber": regex }];
+    filter.$or = [{ invoiceCode: regex }, { "customer.name": regex }, { "customer.phone": regex }, { "customer.vehicleNumber": regex }, { carName: regex }, { carBrand: regex }];
   }
 
   const [items, total] = await Promise.all([
@@ -204,6 +203,14 @@ const createInvoice = asyncHandler(async (req, res) => {
     invoiceNumber,
     invoiceCode,
     invoiceDate: body.invoiceDate || new Date(),
+    deliveryDate: body.deliveryDate,
+    carName: body.carName || "",
+    carBrand: body.carBrand || "",
+    fuelType: body.fuelType || "",
+    yearOfManufacture: body.yearOfManufacture,
+    nextServiceKilometer: body.nextServiceKilometer,
+    pucExpiryDate: body.pucExpiryDate,
+    insuranceExpiryDate: body.insuranceExpiryDate,
     customer,
     lineItems: totals.lineItems,
     subTotal: totals.subTotal,
@@ -214,7 +221,8 @@ const createInvoice = asyncHandler(async (req, res) => {
     paymentMode: body.paymentMode || company.defaultPaymentMode || "Cash",
     payments,
     status: totals.status,
-    description: body.description || "",
+    remarks: body.remarks ?? body.description ?? "",
+    description: "",
     terms: body.terms || company.defaultTerms,
     mapsLink: body.mapsLink || company.mapsLink
   });
@@ -234,6 +242,14 @@ const updateInvoice = asyncHandler(async (req, res) => {
   }
 
   const body = req.validated.body;
+  const invoicePatch = { ...body };
+  if (body.remarks === undefined && body.description !== undefined) {
+    invoicePatch.remarks = body.description;
+    invoicePatch.description = "";
+  }
+  if (body.remarks !== undefined) {
+    invoicePatch.description = "";
+  }
   const customer = body.customer || body.customerId ? await buildCustomerSnapshot({ ...invoice.toObject(), ...body }) : invoice.customer;
   const rawLineItems = body.lineItems ? await prepareLineItems(body.lineItems) : invoice.lineItems.map((item) => item.toObject());
   const payments = body.payments || invoice.payments.map((payment) => payment.toObject());
@@ -249,7 +265,7 @@ const updateInvoice = asyncHandler(async (req, res) => {
   await adjustStockDiff(invoice.lineItems, totals.lineItems);
 
   Object.assign(invoice, {
-    ...body,
+    ...invoicePatch,
     customer,
     lineItems: totals.lineItems,
     payments,

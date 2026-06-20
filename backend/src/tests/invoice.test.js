@@ -7,9 +7,18 @@ const createInvoice = () =>
   request(app).post("/api/invoices").send({
     customer,
     lineItems: [{ itemName: "PETROL AND CNG SERVICE WITH WASHING", quantity: 1, unitPrice: 1250 }],
+    invoiceDate: "2026-06-20T09:15:00.000Z",
+    deliveryDate: "2026-06-21T13:30:00.000Z",
+    carName: "City",
+    carBrand: "Honda",
+    fuelType: "Petrol-CNG",
+    yearOfManufacture: 2021,
+    nextServiceKilometer: 50000,
+    pucExpiryDate: "2026-12-31T00:00:00.000Z",
+    insuranceExpiryDate: "2027-01-31T00:00:00.000Z",
     paymentMode: "Cash",
     receivedAmount: 250,
-    description: "Next service after 5000 KM"
+    remarks: "Next service after 5000 KM"
   });
 
 describe("Invoice API", () => {
@@ -18,6 +27,12 @@ describe("Invoice API", () => {
     expect(res.statusCode).toBe(201);
     expect(res.body.data.invoiceCode).toBe("KA-107");
     expect(res.body.data.customer.name).toBe(customer.name);
+    expect(res.body.data.carName).toBe("City");
+    expect(res.body.data.carBrand).toBe("Honda");
+    expect(res.body.data.fuelType).toBe("Petrol-CNG");
+    expect(res.body.data.yearOfManufacture).toBe(2021);
+    expect(res.body.data.nextServiceKilometer).toBe(50000);
+    expect(res.body.data.remarks).toBe("Next service after 5000 KM");
     expect(res.body.data.status).toBe("partial");
   });
 

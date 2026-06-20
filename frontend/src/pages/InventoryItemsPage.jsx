@@ -35,10 +35,10 @@ export default function InventoryItemsPage() {
         {isLoading ? <Loader /> : !data?.items?.length ? <EmptyState title="No inventory items found" /> : (
           <div className="table-scroll">
             <table className="data-table">
-              <thead><tr><th>Name</th><th>Type</th><th>HSN/SAC</th><th className="amount-heading">Default price</th><th>Stock</th><th>Image</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Name</th><th>Type</th><th className="amount-heading">Default price</th><th>Stock</th><th>Image</th><th>Actions</th></tr></thead>
               <tbody>{data.items.map((item) => (
                 <tr key={item._id}>
-                  <td>{item.name}</td><td>{item.type}</td><td>{item.hsnSac}</td><td className="amount-cell">{formatCurrency(item.defaultPrice)}</td><td>{item.stockQty}</td><td>{item.imageUrl ? <ImagePreview compact src={item.imageUrl} alt={`${item.name} image`} /> : "-"}</td>
+                  <td>{item.name}</td><td>{item.type}</td><td className="amount-cell">{formatCurrency(item.defaultPrice)}</td><td>{item.stockQty}</td><td>{item.imageUrl ? <ImagePreview compact src={item.imageUrl} alt={`${item.name} image`} /> : "-"}</td>
                   <td className="table-actions"><Link className="btn btn-secondary" to={`/inventory-items/${item._id}/edit`}>Edit</Link><Button variant="danger" onClick={() => deleteMutation.mutate(item._id)}>Delete</Button></td>
                 </tr>
               ))}</tbody>

@@ -4,7 +4,7 @@ import InventoryItemsPage from "../pages/InventoryItemsPage.jsx";
 import { renderWithProviders } from "./testUtils.jsx";
 
 vi.mock("../api/inventoryItemApi.js", () => ({
-  getInventoryItems: vi.fn(() => Promise.resolve({ items: [{ _id: "1", name: "Engine oil", type: "part", hsnSac: "", defaultPrice: 364.3, stockQty: 10 }], total: 1, page: 1, pages: 1 })),
+  getInventoryItems: vi.fn(() => Promise.resolve({ items: [{ _id: "1", name: "Engine oil", type: "part", defaultPrice: 364.3, stockQty: 10 }], total: 1, page: 1, pages: 1 })),
   deleteInventoryItem: vi.fn()
 }));
 

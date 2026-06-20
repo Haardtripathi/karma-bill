@@ -2,6 +2,12 @@ const { z } = require("zod");
 const { isValidIndianPhone } = require("../utils/phone.util");
 
 const paymentMode = z.enum(["Cash", "UPI", "Card", "Bank Transfer", "Cheque", "Other"]);
+const fuelType = z.enum(["", "Petrol", "Diesel", "Petrol-CNG"]);
+
+const emptyToUndefined = (value) => value === "" || value === null ? undefined : value;
+const optionalDate = z.preprocess(emptyToUndefined, z.coerce.date().optional());
+const optionalYear = z.preprocess(emptyToUndefined, z.coerce.number().int().min(1900).max(2100).optional());
+const optionalKilometer = z.preprocess(emptyToUndefined, z.coerce.number().min(0).optional());
 
 const customerSnapshot = z.object({
   customerId: z.string().optional().or(z.literal("")),
@@ -17,7 +23,6 @@ const customerSnapshot = z.object({
 const lineItem = z.object({
   itemId: z.string().optional().or(z.literal("")),
   itemName: z.string().trim().min(1, "Item name is required"),
-  hsnSac: z.string().optional().default(""),
   quantity: z.coerce.number().positive("Quantity must be more than 0"),
   unitPrice: z.coerce.number().min(0, "Unit price must be 0 or more"),
   imageUrl: z.string().optional().default(""),
@@ -28,20 +33,29 @@ const lineItem = z.object({
 const payment = z.object({
   amount: z.coerce.number().positive("Payment amount must be more than 0"),
   mode: paymentMode.default("Cash"),
-  paymentDate: z.coerce.date().optional(),
+  paymentDate: optionalDate,
   note: z.string().optional().default("")
 });
 
 const invoiceObject = z.object({
   customerId: z.string().optional().or(z.literal("")),
   customer: customerSnapshot.optional(),
-  invoiceDate: z.coerce.date().optional(),
+  invoiceDate: optionalDate,
+  deliveryDate: optionalDate,
+  carName: z.string().trim().optional().default(""),
+  carBrand: z.string().trim().optional().default(""),
+  fuelType: fuelType.optional().default(""),
+  yearOfManufacture: optionalYear,
+  nextServiceKilometer: optionalKilometer,
+  pucExpiryDate: optionalDate,
+  insuranceExpiryDate: optionalDate,
   lineItems: z.array(lineItem).min(1, "At least one line item is required"),
   discountAmount: z.coerce.number().min(0).default(0),
   receivedAmount: z.coerce.number().min(0).default(0),
   paymentMode: paymentMode.default("Cash"),
   payments: z.array(payment).optional().default([]),
   status: z.enum(["draft", "unpaid", "partial", "paid", "cancelled"]).optional(),
+  remarks: z.string().optional().default(""),
   description: z.string().optional().default(""),
   terms: z.string().optional().default(""),
   mapsLink: z.string().optional().default("")

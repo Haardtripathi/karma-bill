@@ -7,30 +7,49 @@ import Input from "../components/common/Input.jsx";
 import Textarea from "../components/common/Textarea.jsx";
 import Loader from "../components/common/Loader.jsx";
 import CustomerPicker from "../components/invoice/CustomerPicker.jsx";
+import DateTimeFields, { defaultTimeParts } from "../components/invoice/DateTimeFields.jsx";
 import LineItemsTable from "../components/invoice/LineItemsTable.jsx";
 import InvoiceTotalsBox from "../components/invoice/InvoiceTotalsBox.jsx";
 import PaymentBox from "../components/invoice/PaymentBox.jsx";
 import PrintButton from "../components/invoice/PrintButton.jsx";
 import PdfButton from "../components/invoice/PdfButton.jsx";
+import VehicleDetailsFields, { emptyVehicleDetails } from "../components/invoice/VehicleDetailsFields.jsx";
 import WhatsappSendButton from "../components/invoice/WhatsappSendButton.jsx";
 import { getCustomers } from "../api/customerApi.js";
 import { getInventoryItems } from "../api/inventoryItemApi.js";
 import { createInvoice, generateInvoicePdf, invoicePdfUrl, sendInvoiceWhatsapp } from "../api/invoiceApi.js";
 import { uploadInvoiceImage } from "../api/uploadApi.js";
 import { roundMoney } from "../utils/currency.js";
-import { toInputDate } from "../utils/date.js";
+import { combineDateAndTime, dateOnlyToPayload, toInputDate, toInputTimeParts } from "../utils/date.js";
 import { closePdfPlaceholder, openPdfPlaceholder, openPdfUrl, showPdfUrl } from "../utils/pdfWindow.js";
 
 const emptyCustomer = { name: "", phone: "", email: "", address: "", vehicleNumber: "", vehicleKm: "" };
-const emptyLine = { itemId: "", itemName: "", hsnSac: "", quantity: 1, unitPrice: 0, imageUrl: "", imagePublicId: "", imageNote: "" };
+const emptyLine = { itemId: "", itemName: "", quantity: 1, unitPrice: 0, imageUrl: "", imagePublicId: "", imageNote: "" };
+
+const toOptionalNumber = (value) => value === "" || value === null || value === undefined ? null : Number(value);
+const buildLineItemPayload = (item) => ({
+  ...item,
+  amount: roundMoney(Number(item.quantity || 0) * Number(item.unitPrice || 0))
+});
+const buildVehiclePayload = (vehicleDetails) => ({
+  ...vehicleDetails,
+  yearOfManufacture: toOptionalNumber(vehicleDetails.yearOfManufacture),
+  nextServiceKilometer: toOptionalNumber(vehicleDetails.nextServiceKilometer),
+  pucExpiryDate: dateOnlyToPayload(vehicleDetails.pucExpiryDate),
+  insuranceExpiryDate: dateOnlyToPayload(vehicleDetails.insuranceExpiryDate)
+});
 
 export default function CreateInvoicePage() {
   const queryClient = useQueryClient();
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [quickCustomer, setQuickCustomer] = useState(emptyCustomer);
   const [invoiceDate, setInvoiceDate] = useState(toInputDate());
+  const [invoiceTime, setInvoiceTime] = useState(toInputTimeParts());
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState(defaultTimeParts);
+  const [vehicleDetails, setVehicleDetails] = useState(emptyVehicleDetails);
   const [lineItems, setLineItems] = useState([emptyLine]);
-  const [description, setDescription] = useState("");
+  const [remarks, setRemarks] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [paymentMode, setPaymentMode] = useState("Cash");
   const [receivedAmount, setReceivedAmount] = useState(0);
@@ -74,15 +93,17 @@ export default function CreateInvoicePage() {
     });
   };
 
-  const buildPayload = (status = "unpaid") => ({
+  const buildPayload = (status, items) => ({
     customerId: selectedCustomerId || undefined,
     customer: selectedCustomerId ? { ...quickCustomer, customerId: selectedCustomerId } : quickCustomer,
-    invoiceDate,
-    lineItems: lineItems.map((item) => ({ ...item, amount: roundMoney(Number(item.quantity || 0) * Number(item.unitPrice || 0)) })),
+    invoiceDate: combineDateAndTime(invoiceDate, invoiceTime),
+    deliveryDate: deliveryDate ? combineDateAndTime(deliveryDate, deliveryTime) : null,
+    ...buildVehiclePayload(vehicleDetails),
+    lineItems: items.map(buildLineItemPayload),
     discountAmount: Number(discountAmount || 0),
     receivedAmount: Number(receivedAmount || 0),
     paymentMode,
-    description,
+    remarks,
     status
   });
 
@@ -90,7 +111,7 @@ export default function CreateInvoicePage() {
     const activeItems = lineItems.filter((item) => item.itemName && Number(item.quantity) > 0);
     if (!quickCustomer.name || !quickCustomer.phone) return toast.error("Customer name and phone are required");
     if (!activeItems.length) return toast.error("At least one line item is required");
-    createMutation.mutate({ ...buildPayload(status), lineItems: activeItems });
+    createMutation.mutate(buildPayload(status, activeItems));
   };
 
   const handlePdf = () => {
@@ -116,12 +137,17 @@ export default function CreateInvoicePage() {
       <div className="page-header"><div><h2>Create Invoice</h2><p>Select customer, add service/parts, collect payment and save.</p></div><Link className="btn btn-secondary" to="/invoices">Back</Link></div>
       <div className="panel page">
         <CustomerPicker customers={customers} selectedCustomerId={selectedCustomerId} quickCustomer={quickCustomer} onSelect={handleCustomerSelect} onQuickChange={(patch) => setQuickCustomer((current) => ({ ...current, ...patch }))} />
-        <div className="form-grid" style={{ margin: "16px 0" }}><Input label="Invoice date" type="date" value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} /><Input label="Discount" type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} /></div>
+        <div className="form-grid invoice-date-grid" style={{ margin: "16px 0" }}>
+          <DateTimeFields labelPrefix="Invoice" dateLabel="Invoice date" dateValue={invoiceDate} timeValue={invoiceTime} onDateChange={setInvoiceDate} onTimeChange={setInvoiceTime} />
+          <DateTimeFields labelPrefix="Delivery" dateLabel="Delivery date" dateValue={deliveryDate} timeValue={deliveryTime} onDateChange={setDeliveryDate} onTimeChange={setDeliveryTime} />
+          <Input label="Discount" type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} />
+        </div>
+        <VehicleDetailsFields value={vehicleDetails} onChange={setVehicleDetails} />
         <LineItemsTable lineItems={lineItems} setLineItems={setLineItems} inventoryItems={inventoryItems} onUploadImage={uploadImage} />
         <PaymentBox paymentMode={paymentMode} receivedAmount={receivedAmount} onChange={(patch) => { if (patch.paymentMode !== undefined) setPaymentMode(patch.paymentMode); if (patch.receivedAmount !== undefined) setReceivedAmount(patch.receivedAmount); }} />
         <div className="invoice-summary-layout">
           <div className="invoice-summary-desc">
-            <Textarea label="Description" value={description} onChange={(event) => setDescription(event.target.value)} />
+            <Textarea label="Remarks" value={remarks} onChange={(event) => setRemarks(event.target.value)} />
           </div>
           <div className="invoice-summary-totals">
             <InvoiceTotalsBox subTotal={subTotal} discountAmount={discountAmount} receivedAmount={receivedAmount} />
@@ -132,7 +158,7 @@ export default function CreateInvoicePage() {
           <Button onClick={() => save("unpaid")} disabled={createMutation.isPending}>Save invoice</Button>
         </div>
         {savedInvoice && <div className="saved-invoice-actions">
-          <Link className="btn btn-secondary" to={`/invoices/${savedInvoice._id}`}>View Invoice</Link>
+          <Link className="btn btn-secondary" to={"/invoices/" + savedInvoice._id}>View Invoice</Link>
           <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(savedInvoice._id))} />
           <PdfButton onClick={handlePdf} busy={pdfMutation.isPending} />
           <WhatsappSendButton onClick={() => whatsappMutation.mutate(savedInvoice._id)} busy={whatsappMutation.isPending} />

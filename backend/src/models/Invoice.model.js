@@ -17,7 +17,6 @@ const lineItemSchema = new mongoose.Schema(
   {
     itemId: { type: mongoose.Schema.Types.ObjectId, ref: "InventoryItem" },
     itemName: { type: String, required: true, trim: true },
-    hsnSac: { type: String, trim: true, default: "" },
     quantity: { type: Number, required: true, min: 0.01 },
     unitPrice: { type: Number, required: true, min: 0 },
     amount: { type: Number, required: true, min: 0 },
@@ -43,6 +42,18 @@ const invoiceSchema = new mongoose.Schema(
     invoiceNumber: { type: Number, required: true, unique: true },
     invoiceCode: { type: String, required: true, unique: true },
     invoiceDate: { type: Date, default: Date.now },
+    deliveryDate: { type: Date },
+    carName: { type: String, trim: true, default: "" },
+    carBrand: { type: String, trim: true, default: "" },
+    fuelType: {
+      type: String,
+      enum: ["", "Petrol", "Diesel", "Petrol-CNG"],
+      default: ""
+    },
+    yearOfManufacture: { type: Number },
+    nextServiceKilometer: { type: Number, min: 0 },
+    pucExpiryDate: { type: Date },
+    insuranceExpiryDate: { type: Date },
     customer: { type: customerSnapshotSchema, required: true },
     lineItems: { type: [lineItemSchema], validate: (items) => items.length > 0 },
     subTotal: { type: Number, default: 0 },
@@ -61,6 +72,7 @@ const invoiceSchema = new mongoose.Schema(
       enum: ["draft", "unpaid", "partial", "paid", "cancelled"],
       default: "unpaid"
     },
+    remarks: { type: String, trim: true, default: "" },
     description: { type: String, default: "" },
     terms: { type: String, default: "Thank you for doing business with us." },
     mapsLink: { type: String, default: "" },
@@ -79,7 +91,7 @@ const invoiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-invoiceSchema.index({ "customer.name": "text", "customer.phone": "text", "customer.vehicleNumber": "text", invoiceCode: "text" });
+invoiceSchema.index({ "customer.name": "text", "customer.phone": "text", "customer.vehicleNumber": "text", invoiceCode: "text", carName: "text", carBrand: "text" });
 invoiceSchema.index({ status: 1, invoiceDate: -1 });
 
 module.exports = mongoose.model("Invoice", invoiceSchema);

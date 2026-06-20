@@ -6,7 +6,7 @@ import Input from "../common/Input.jsx";
 import ItemPicker from "./ItemPicker.jsx";
 import { formatCurrency, roundMoney } from "../../utils/currency.js";
 
-const makeEmptyLine = () => ({ itemId: "", itemName: "", hsnSac: "", quantity: 1, unitPrice: 0, imageUrl: "", imagePublicId: "", imageNote: "" });
+const makeEmptyLine = () => ({ itemId: "", itemName: "", quantity: 1, unitPrice: 0, imageUrl: "", imagePublicId: "", imageNote: "" });
 
 export default function LineItemsTable({ lineItems, setLineItems, inventoryItems = [], onUploadImage }) {
   const updateRow = (index, patch) => {
@@ -17,7 +17,6 @@ export default function LineItemsTable({ lineItems, setLineItems, inventoryItems
     updateRow(index, {
       itemId: selected._id,
       itemName: selected.name,
-      hsnSac: selected.hsnSac || "",
       unitPrice: selected.defaultPrice || 0
     });
   };
@@ -25,7 +24,7 @@ export default function LineItemsTable({ lineItems, setLineItems, inventoryItems
   const typeItemName = (index, name) => {
     const patch = name.trim()
       ? { itemId: "", itemName: name }
-      : { itemId: "", itemName: "", hsnSac: "", unitPrice: 0 };
+      : { itemId: "", itemName: "", unitPrice: 0 };
     updateRow(index, patch);
   };
 
@@ -49,7 +48,6 @@ export default function LineItemsTable({ lineItems, setLineItems, inventoryItems
           <thead>
             <tr>
               <th>Item</th>
-              <th>HSN/SAC</th>
               <th>Qty</th>
               <th>Unit price</th>
               <th className="amount-heading">Line total</th>
@@ -71,7 +69,6 @@ export default function LineItemsTable({ lineItems, setLineItems, inventoryItems
                       onType={(name) => typeItemName(index, name)}
                     />
                   </td>
-                  <td data-label="HSN/SAC"><Input aria-label="HSN/SAC" value={item.hsnSac} onChange={(event) => updateRow(index, { hsnSac: event.target.value })} /></td>
                   <td data-label="Qty"><Input aria-label="Quantity" type="number" min="0.01" step="0.01" value={item.quantity} onChange={(event) => updateRow(index, { quantity: event.target.value })} /></td>
                   <td data-label="Unit price"><Input aria-label="Price" type="number" min="0" step="0.01" value={item.unitPrice} onChange={(event) => updateRow(index, { unitPrice: event.target.value })} /></td>
                   <td className="amount-cell" data-label="Line total">{formatCurrency(amount)}</td>

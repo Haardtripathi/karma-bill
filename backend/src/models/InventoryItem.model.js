@@ -4,7 +4,6 @@ const inventoryItemSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     type: { type: String, enum: ["service", "part", "other"], default: "service" },
-    hsnSac: { type: String, trim: true, default: "" },
     unit: { type: String, trim: true, default: "pcs" },
     defaultPrice: { type: Number, min: 0, default: 0 },
     stockQty: { type: Number, min: 0, default: 0 },
@@ -17,7 +16,7 @@ const inventoryItemSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-inventoryItemSchema.index({ name: "text", hsnSac: "text", description: "text" });
+inventoryItemSchema.index({ name: "text", description: "text" });
 inventoryItemSchema.index({ type: 1 });
 
 module.exports = mongoose.model("InventoryItem", inventoryItemSchema);

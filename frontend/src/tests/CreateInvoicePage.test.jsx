@@ -66,6 +66,14 @@ test("selected customer stays editable and saves invoice-specific vehicle detail
 
   fireEvent.change(screen.getByLabelText("Vehicle Number"), { target: { value: "GJ02BB2222" } });
   fireEvent.change(screen.getByLabelText("Vehicle KM"), { target: { value: "48200" } });
+  fireEvent.change(screen.getByLabelText("Delivery date"), { target: { value: "2026-06-22" } });
+  fireEvent.change(screen.getByLabelText("Car name"), { target: { value: "City" } });
+  fireEvent.change(screen.getByLabelText("Car brand"), { target: { value: "Honda" } });
+  fireEvent.change(screen.getByLabelText("Year of manufacture"), { target: { value: "2021" } });
+  fireEvent.change(screen.getByLabelText("Next service kilometer"), { target: { value: "53000" } });
+  fireEvent.change(screen.getByLabelText("PUC expiry"), { target: { value: "2026-12-31" } });
+  fireEvent.change(screen.getByLabelText("Insurance expiry"), { target: { value: "2027-01-31" } });
+  fireEvent.change(screen.getByLabelText("Remarks"), { target: { value: "Next service after 5000 KM" } });
   fireEvent.change(screen.getByLabelText("Item name"), { target: { value: "Wheel alignment" } });
   fireEvent.change(screen.getByLabelText("Price"), { target: { value: "700" } });
 
@@ -74,6 +82,14 @@ test("selected customer stays editable and saves invoice-specific vehicle detail
   expect(mocks.createInvoice).toHaveBeenCalled();
   expect(mocks.createInvoice.mock.calls[0][0]).toMatchObject({
     customerId: "cust1",
-    customer: { customerId: "cust1", name: "Rahul Patel", phone: "9876543210", vehicleNumber: "GJ02BB2222", vehicleKm: "48200" }
+    customer: { customerId: "cust1", name: "Rahul Patel", phone: "9876543210", vehicleNumber: "GJ02BB2222", vehicleKm: "48200" },
+    carName: "City",
+    carBrand: "Honda",
+    yearOfManufacture: 2021,
+    nextServiceKilometer: 53000,
+    remarks: "Next service after 5000 KM"
   });
+  expect(mocks.createInvoice.mock.calls[0][0].deliveryDate).toBeTruthy();
+  expect(mocks.createInvoice.mock.calls[0][0].pucExpiryDate).toBeTruthy();
+  expect(mocks.createInvoice.mock.calls[0][0].insuranceExpiryDate).toBeTruthy();
 });

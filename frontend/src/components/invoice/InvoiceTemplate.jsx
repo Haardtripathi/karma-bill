@@ -1,5 +1,5 @@
 import { amountToWords } from "../../utils/amountToWords.js";
-import { formatDate } from "../../utils/date.js";
+import { formatDate, formatDateTime } from "../../utils/date.js";
 
 const formatBillCurrency = (value) => `₹ ${new Intl.NumberFormat("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(value || 0))}`;
 
@@ -23,6 +23,13 @@ const cleanTerms = (invoice, company) => {
 };
 
 const hasUsableImage = (url) => url && !hasTestMarker(url);
+const formatMaybeDate = (value) => value ? formatDate(value) : "";
+const formatKilometer = (value) => value === undefined || value === null || value === "" ? "" : Number(value).toLocaleString("en-IN");
+
+function BillDetail({ label, value }) {
+  if (!value) return null;
+  return <div className="bill-detail"><strong>{label}:</strong> <span>{value}</span></div>;
+}
 
 export default function InvoiceTemplate({ invoice, company }) {
   if (!invoice || !company) return null;
@@ -30,6 +37,18 @@ export default function InvoiceTemplate({ invoice, company }) {
   const hasDiscount = Number(invoice.discountAmount || 0) > 0;
   const logoUrl = company.logoUrl || "/logo.webp";
   const hasBrandLogo = !!logoUrl;
+  const remarksText = invoice.remarks || invoice.description || "";
+  const carDisplayName = [invoice.carBrand, invoice.carName].filter(Boolean).join(" ");
+  const billToDetails = [
+    ["Next Service KM", formatKilometer(invoice.nextServiceKilometer)],
+    ["Vehicle No", invoice.customer?.vehicleNumber],
+    ["Current KM", invoice.customer?.vehicleKm],
+    ["Car", carDisplayName],
+    ["Fuel", invoice.fuelType],
+    ["Year", invoice.yearOfManufacture],
+    ["PUC Expiry", formatMaybeDate(invoice.pucExpiryDate)],
+    ["Insurance", formatMaybeDate(invoice.insuranceExpiryDate)]
+  ];
 
   return (
     <article className="invoice-template">
@@ -40,6 +59,7 @@ export default function InvoiceTemplate({ invoice, company }) {
           <img className="invoice-logo-image" src={logoUrl} alt="Company logo" />
         </div>
         <div className="invoice-company-info no-heading">
+          <h1 className="invoice-business-name">{company.businessName || "KARMA AUTOMOBILES"}</h1>
           <p>{companyAddress(company)}</p>
           <div className="invoice-company-contact">
             <span><strong>Phone:</strong> {company.phone}</span>
@@ -53,12 +73,18 @@ export default function InvoiceTemplate({ invoice, company }) {
           <div className="invoice-section-label">Bill To:</div>
           <div className="invoice-customer-name">{invoice.customer?.name}</div>
           {invoice.customer?.address && <div className="invoice-customer-address">{invoice.customer.address}</div>}
-          {invoice.customer?.phone && <div className="invoice-customer-address">Phone: {invoice.customer.phone}</div>}
+          {invoice.customer?.phone && <div className="invoice-customer-address"><strong>Phone:</strong> {invoice.customer.phone}</div>}
+          {billToDetails.some(([, value]) => value) && (
+            <div className="bill-detail-grid">
+              {billToDetails.map(([label, value]) => <BillDetail key={label} label={label} value={value} />)}
+            </div>
+          )}
         </div>
         <div className="invoice-details-box">
           <div className="invoice-section-label">Invoice Details:</div>
           <div className="invoice-detail-row"><span>No:</span><span>{invoice.invoiceCode || invoice.invoiceNumber}</span></div>
-          <div className="invoice-detail-row"><span>Date:</span><span>{formatDate(invoice.invoiceDate)}</span></div>
+          <div className="invoice-detail-row"><span>Date:</span><span>{formatDateTime(invoice.invoiceDate)}</span></div>
+          {invoice.deliveryDate && <div className="invoice-detail-row"><span>Delivery:</span><span>{formatDateTime(invoice.deliveryDate)}</span></div>}
         </div>
       </section>
 
@@ -68,7 +94,6 @@ export default function InvoiceTemplate({ invoice, company }) {
             <tr>
               <th style={{ width: 34 }}>#</th>
               <th>Item Name</th>
-              <th style={{ width: 86 }}>HSN/ SAC</th>
               <th className="right" style={{ width: 82 }}>Quantity</th>
               <th className="right" style={{ width: 112 }}>Price/ Unit(₹)</th>
               <th className="right" style={{ width: 104 }}>Amount(₹)</th>
@@ -83,7 +108,6 @@ export default function InvoiceTemplate({ invoice, company }) {
                   {item.imageNote && <small>{item.imageNote}</small>}
                   {item.imageUrl && <a className="image-link" href={item.imageUrl} target="_blank" rel="noreferrer">View Image</a>}
                 </td>
-                <td>{item.hsnSac}</td>
                 <td className="right">{formatQuantity(item.quantity)}</td>
                 <td className="right">{formatBillCurrency(item.unitPrice)}</td>
                 <td className="right">{formatBillCurrency(item.amount)}</td>
@@ -92,7 +116,6 @@ export default function InvoiceTemplate({ invoice, company }) {
             <tr className="total-row">
               <td></td>
               <td><strong>Total</strong></td>
-              <td></td>
               <td className="right"><strong>{formatQuantity(totalQuantity)}</strong></td>
               <td></td>
               <td className="right"><strong>{formatBillCurrency(invoice.grandTotal)}</strong></td>
@@ -119,9 +142,13 @@ export default function InvoiceTemplate({ invoice, company }) {
       <section className="invoice-footer-section">
         <div className="invoice-desc-section">
           <div className="invoice-section-label">Description:</div>
-          {invoice.customer?.vehicleNumber && <div className="desc-item">{invoice.customer.vehicleNumber}</div>}
-          {invoice.customer?.vehicleKm && <div className="desc-item">KM:-{invoice.customer.vehicleKm}</div>}
-          {invoice.description && <div className="desc-next">{invoice.description}</div>}
+          <div className="description-placeholder">Service / parts description as per line items above.</div>
+          {remarksText && (
+            <div className="remarks-block">
+              <div className="invoice-section-label">Remarks:</div>
+              <div className="remarks-text">{remarksText}</div>
+            </div>
+          )}
         </div>
         <div className="terms-sig-section">
           <div className="terms-block">

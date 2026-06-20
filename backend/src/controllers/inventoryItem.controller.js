@@ -13,7 +13,7 @@ const listInventoryItems = asyncHandler(async (req, res) => {
   if (req.query.type) filter.type = req.query.type;
   if (req.query.search) {
     const regex = new RegExp(req.query.search, "i");
-    filter.$or = [{ name: regex }, { hsnSac: regex }, { description: regex }];
+    filter.$or = [{ name: regex }, { description: regex }];
   }
 
   const [items, total] = await Promise.all([

@@ -10,7 +10,7 @@ import Textarea from "../components/common/Textarea.jsx";
 import Loader from "../components/common/Loader.jsx";
 import { createInventoryItem, getInventoryItem, updateInventoryItem, uploadInventoryItemImage } from "../api/inventoryItemApi.js";
 
-const blank = { name: "", type: "service", hsnSac: "", unit: "pcs", defaultPrice: 0, stockQty: 0, lowStockQty: 0, description: "" };
+const blank = { name: "", type: "service", unit: "pcs", defaultPrice: 0, stockQty: 0, lowStockQty: 0, description: "" };
 
 export default function InventoryItemFormPage() {
   const { id } = useParams();
@@ -39,7 +39,6 @@ export default function InventoryItemFormPage() {
         <div className="form-grid two">
           <Input label="Name" required value={form.name} onChange={(event) => set({ name: event.target.value })} />
           <Select label="Type" value={form.type} onChange={(event) => set({ type: event.target.value })}><option value="service">service</option><option value="part">part</option><option value="other">other</option></Select>
-          <Input label="HSN/SAC" value={form.hsnSac} onChange={(event) => set({ hsnSac: event.target.value })} />
           <Input label="Unit" value={form.unit} onChange={(event) => set({ unit: event.target.value })} />
           <Input label="Default price" type="number" min="0" step="0.01" value={form.defaultPrice} onChange={(event) => set({ defaultPrice: event.target.value })} />
           <Input label="Stock qty" type="number" min="0" value={form.stockQty} onChange={(event) => set({ stockQty: event.target.value })} />
