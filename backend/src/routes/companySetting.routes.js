@@ -10,5 +10,6 @@ router.get("/", controller.getCompanySettings);
 router.put("/", validate(updateCompanySettingSchema), controller.updateCompanySettings);
 router.post("/logo", upload.single("image"), controller.uploadCompanyLogo);
 router.post("/signature", upload.single("image"), controller.uploadCompanySignature);
+router.post("/payment-qr", upload.single("image"), controller.uploadCompanyPaymentQr);
 
 module.exports = router;

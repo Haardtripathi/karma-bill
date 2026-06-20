@@ -131,7 +131,7 @@ export default function EditInvoicePage() {
         lineItems: form.lineItems.map(buildLineItemPayload) 
       } 
     }),
-    onSuccess: () => { toast.success("Invoice updated"); queryClient.invalidateQueries({ queryKey: ["invoices"] }); navigate("/invoices/" + id); },
+    onSuccess: () => { toast.success("Invoice updated"); queryClient.invalidateQueries({ queryKey: ["invoices"] }); queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }); navigate("/invoices"); },
     onError: (error) => toast.error(error.message)
   });
   const uploadImage = async (file, index) => {

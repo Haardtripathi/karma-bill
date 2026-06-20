@@ -53,6 +53,10 @@ const detailMarkup = (label, value) =>
   value ? `<div class="desc-item"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</div>` : "";
 const billDetailMarkup = (label, value) =>
   value ? `<div class="bill-detail"><strong>${escapeHtml(label)}:</strong> <span>${escapeHtml(value)}</span></div>` : "";
+const paymentDetailMarkup = (label, value) =>
+  value ? `<div class="payment-detail-row"><strong>${escapeHtml(label)}:</strong> <span>${escapeHtml(value)}</span></div>` : "";
+const miniDetailMarkup = (label, value) =>
+  value ? `<div class="invoice-mini-row"><strong>${escapeHtml(label)}:</strong> <span>${escapeHtml(value)}</span></div>` : "";
 
 const imageLink = (item) =>
   item.imageUrl
@@ -91,6 +95,28 @@ const invoiceTemplate = ({ invoice, company }) => {
     ["PUC Expiry", formatMaybeDate(invoice.pucExpiryDate)],
     ["Insurance", formatMaybeDate(invoice.insuranceExpiryDate)]
   ].map(([label, value]) => billDetailMarkup(label, value)).join("");
+  const paymentMode = invoice.paymentMode || company.defaultPaymentMode || "Cash";
+  const showPaymentDetails = ["UPI", "Bank Transfer"].includes(paymentMode);
+  const paymentDetailRows = showPaymentDetails ? [
+    ...(paymentMode === "UPI" ? [["UPI ID", company.upiId]] : []),
+    ["A/C Name", company.bankAccountName],
+    ["Bank", company.bankName],
+    ["A/C No", company.bankAccountNumber],
+    ["IFSC", company.bankIfsc],
+    ["Branch", company.bankBranch]
+  ].map(([label, value]) => paymentDetailMarkup(label, value)).join("") : "";
+  const showPaymentQr = paymentMode === "UPI" && hasUsableImage(company.paymentQrUrl);
+  const invoiceQuickRows = [
+    ["Status", invoice.status],
+    ["Payment", paymentMode],
+    ["Balance", formatBillCurrency(invoice.balanceAmount)]
+  ].map(([label, value]) => miniDetailMarkup(label, value)).join("");
+  const billAddressMarkup = invoice.customer?.address ? `<div class="invoice-customer-address">${escapeHtml(invoice.customer.address)}</div>` : "";
+  const billPhoneMarkup = invoice.customer?.phone ? `<div class="invoice-customer-address"><strong>Phone:</strong> ${escapeHtml(invoice.customer.phone)}</div>` : "";
+  const billVehicleMarkup = billToDetailRows ? `<div class="bill-vehicle-block"><div class="invoice-section-label compact">Vehicle / Service:</div><div class="bill-detail-grid">${billToDetailRows}</div></div>` : "";
+  const deliveryMarkup = invoice.deliveryDate ? `<div class="invoice-detail-row"><span>Delivery:</span><span>${formatDateTime(invoice.deliveryDate)}</span></div>` : "";
+  const paymentQrMarkup = showPaymentQr ? `<img class="payment-qr" src="${escapeHtml(company.paymentQrUrl)}" alt="Payment QR" />` : "";
+  const paymentContentMarkup = paymentDetailRows || paymentQrMarkup ? `<div class="payment-content"><div class="payment-detail-list">${paymentDetailRows}</div>${paymentQrMarkup}</div>` : "";
   const rows = invoice.lineItems
     .map(
       (item, index) => `
@@ -135,17 +161,28 @@ const invoiceTemplate = ({ invoice, company }) => {
     .invoice-company-contact { display: flex; flex-wrap: wrap; gap: 14px 40px; font-size: 11px; color: #444; }
     .invoice-company-contact strong { font-weight: 600; }
     .invoice-meta-grid { display: flex; border-bottom: 1px solid #bbb; }
-    .invoice-meta-grid > div { flex: 1; padding: 8px 14px; min-height: 104px; }
-    .invoice-bill-to { border-right: 1px solid #bbb; }
+    .invoice-meta-grid > div { flex: 1; padding: 8px 14px; min-height: 116px; }
+    .invoice-bill-to { border-right: 1px solid #bbb; flex: 1.08; }
+    .invoice-details-box { flex: .92; }
     .invoice-section-label { font-weight: 850; font-size: 12px; margin-bottom: 5px; text-decoration: underline; }
+    .invoice-section-label.compact { font-size: 11.5px; margin-bottom: 4px; }
+    .bill-to-layout { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.1fr); gap: 10px; min-height: 98px; }
+    .bill-customer-block, .bill-vehicle-block { min-width: 0; }
+    .bill-vehicle-block { border-left: 1px dashed #c9c9c9; padding-left: 10px; }
     .invoice-customer-name { font-weight: 700; font-size: 13px; }
-    .invoice-customer-address { font-size: 12px; color: #333; }
-    .bill-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 12px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #c9c9c9; }
-    .bill-detail { font-size: 11.5px; color: #111; line-height: 1.25; }
+    .invoice-customer-address { font-size: 12px; color: #333; overflow-wrap: anywhere; }
+    .bill-detail-grid { display: grid; grid-template-columns: 1fr; gap: 2px; }
+    .bill-detail { font-size: 11.5px; color: #111; line-height: 1.25; overflow-wrap: anywhere; }
     .bill-detail strong { font-weight: 800; }
     .bill-detail span { font-weight: 700; color: #1a5ce6; }
-    .invoice-detail-row { font-size: 12px; display: flex; gap: 6px; margin-bottom: 1px; }
-    .invoice-detail-row span:first-child { font-weight: 600; min-width: 34px; }
+    .invoice-details-layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); gap: 10px; min-height: 98px; }
+    .invoice-detail-main, .invoice-mini-summary { min-width: 0; }
+    .invoice-mini-summary { border-left: 1px dashed #c9c9c9; padding-left: 10px; }
+    .invoice-detail-row { font-size: 12px; display: flex; gap: 6px; margin-bottom: 1px; overflow-wrap: anywhere; }
+    .invoice-detail-row span:first-child { font-weight: 600; min-width: 58px; }
+    .invoice-mini-row { font-size: 11.5px; line-height: 1.25; margin-bottom: 2px; overflow-wrap: anywhere; }
+    .invoice-mini-row strong { font-weight: 800; }
+    .invoice-mini-row span { font-weight: 700; color: #111; text-transform: capitalize; }
     table { width: 100%; border-collapse: collapse; }
     thead tr { background: #e8e8e8; }
     th { padding: 7px 8px; font-size: 12px; font-weight: 700; text-align: left; border: 1px solid #bbb; white-space: nowrap; background: #e8e8e8; }
@@ -157,7 +194,16 @@ const invoiceTemplate = ({ invoice, company }) => {
     .invoice-item-name { font-weight: 500; }
     small, .image-link { display: block; margin-top: 4px; color: #1a5ce6; font-size: 11.5px; }
     .invoice-summary-section { display: flex; border-top: 1px solid #bbb; }
-    .invoice-payment-mode { flex: 1; padding: 7px 14px; border-right: 1px solid #bbb; font-size: 12px; }
+    .invoice-payment-mode { flex: 1; padding: 7px 14px; border-right: 1px solid #bbb; font-size: 12px; min-height: 118px; }
+    .payment-mode-row { display: flex; gap: 6px; align-items: baseline; margin-bottom: 5px; }
+    .payment-mode-row strong { font-weight: 800; }
+    .payment-mode-value { font-weight: 800; color: #111; }
+    .payment-content { display: flex; align-items: flex-start; gap: 10px; }
+    .payment-detail-list { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .payment-detail-row { font-size: 11.2px; line-height: 1.25; overflow-wrap: anywhere; }
+    .payment-detail-row strong { font-weight: 800; }
+    .payment-detail-row span { font-weight: 700; }
+    .payment-qr { width: 82px; height: 82px; object-fit: contain; border: 1px solid #d6d6d6; padding: 3px; background: #fff; flex: 0 0 auto; }
     .invoice-summary-right { min-width: 300px; }
     .summary-row { display: grid; grid-template-columns: 1fr auto minmax(90px, auto); align-items: center; gap: 6px; padding: 5px 14px; border-bottom: 1px solid #ddd; font-size: 12px; }
     .summary-row.bold { font-weight: 700; }
@@ -166,13 +212,10 @@ const invoiceTemplate = ({ invoice, company }) => {
     .amount-words { padding: 5px 14px 6px; border-bottom: 1px solid #ddd; font-size: 11.5px; }
     .amount-words .aw-label { font-weight: 700; margin-bottom: 2px; font-size: 12px; }
     .invoice-footer-section { display: flex; border-top: 2px solid #bbb; }
-    .invoice-desc-section { flex: 1; padding: 8px 14px; border-right: 1px solid #bbb; min-height: 128px; }
+    .invoice-desc-section { flex: 1; padding: 8px 14px; border-right: 1px solid #bbb; min-height: 104px; }
     .desc-item { font-size: 11.5px; color: #1a5ce6; margin-bottom: 3px; }
     .desc-item strong { color: #111; }
-    .description-placeholder { min-height: 42px; color: #555; font-size: 11.5px; }
-    .desc-next { font-size: 11.5px; color: #111; margin-top: 4px; font-weight: 700; }
-    .remarks-block { margin-top: 8px; padding-top: 7px; border-top: 1px dashed #c9c9c9; }
-    .remarks-text { font-size: 11.5px; color: #111; font-weight: 700; white-space: pre-wrap; }
+    .remarks-text { font-size: 11.5px; color: #111; font-weight: 700; white-space: pre-wrap; overflow-wrap: anywhere; }
     .terms-sig-section { min-width: 320px; display: flex; flex-direction: column; }
     .terms-block { padding: 8px 14px; border-bottom: 1px solid #bbb; flex: 1; }
     .terms-text { font-size: 11.5px; color: #333; }
@@ -205,17 +248,29 @@ const invoiceTemplate = ({ invoice, company }) => {
 
     <div class="invoice-meta-grid">
       <div class="invoice-bill-to">
-        <div class="invoice-section-label">Bill To:</div>
-        <div class="invoice-customer-name">${escapeHtml(invoice.customer?.name || "")}</div>
-        ${invoice.customer?.address ? `<div class="invoice-customer-address">${escapeHtml(invoice.customer.address)}</div>` : ""}
-        ${invoice.customer?.phone ? `<div class="invoice-customer-address"><strong>Phone:</strong> ${escapeHtml(invoice.customer.phone)}</div>` : ""}
-        ${billToDetailRows ? `<div class="bill-detail-grid">${billToDetailRows}</div>` : ""}
+        <div class="bill-to-layout">
+          <div class="bill-customer-block">
+            <div class="invoice-section-label">Bill To:</div>
+            <div class="invoice-customer-name">${escapeHtml(invoice.customer?.name || "")}</div>
+            ${billAddressMarkup}
+            ${billPhoneMarkup}
+          </div>
+          ${billVehicleMarkup}
+        </div>
       </div>
       <div class="invoice-details-box">
-        <div class="invoice-section-label">Invoice Details:</div>
-        <div class="invoice-detail-row"><span>No:</span><span>${escapeHtml(invoice.invoiceCode || invoice.invoiceNumber)}</span></div>
-        <div class="invoice-detail-row"><span>Date:</span><span>${formatDateTime(invoice.invoiceDate)}</span></div>
-        ${invoice.deliveryDate ? `<div class="invoice-detail-row"><span>Delivery:</span><span>${formatDateTime(invoice.deliveryDate)}</span></div>` : ""}
+        <div class="invoice-details-layout">
+          <div class="invoice-detail-main">
+            <div class="invoice-section-label">Invoice Details:</div>
+            <div class="invoice-detail-row"><span>No:</span><span>${escapeHtml(invoice.invoiceCode || invoice.invoiceNumber)}</span></div>
+            <div class="invoice-detail-row"><span>Date:</span><span>${formatDateTime(invoice.invoiceDate)}</span></div>
+            ${deliveryMarkup}
+          </div>
+          <div class="invoice-mini-summary">
+            <div class="invoice-section-label compact">Quick Details:</div>
+            ${invoiceQuickRows}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -244,7 +299,8 @@ const invoiceTemplate = ({ invoice, company }) => {
     <div class="invoice-summary-section">
       <div class="invoice-payment-mode">
         <div class="invoice-section-label">Payment Mode:</div>
-        <div>${escapeHtml(invoice.paymentMode || company.defaultPaymentMode || "Cash")}</div>
+        <div class="payment-mode-row"><strong>Mode:</strong><span class="payment-mode-value">${escapeHtml(paymentMode)}</span></div>
+        ${paymentContentMarkup}
       </div>
       <div class="invoice-summary-right">
         <div class="summary-row"><span class="label">Sub Total</span><span class="colon">:</span><span class="value">${formatBillCurrency(invoice.subTotal)}</span></div>
@@ -258,9 +314,8 @@ const invoiceTemplate = ({ invoice, company }) => {
 
     <div class="invoice-footer-section">
       <div class="invoice-desc-section">
-        <div class="invoice-section-label">Description:</div>
-        <div class="description-placeholder">Service / parts description as per line items above.</div>
-        ${remarksText ? `<div class="remarks-block"><div class="invoice-section-label">Remarks:</div><div class="remarks-text">${escapeHtml(remarksText)}</div></div>` : ""}
+        <div class="invoice-section-label">Remarks:</div>
+        <div class="remarks-text">${remarksText ? escapeHtml(remarksText) : "&nbsp;"}</div>
       </div>
       <div class="terms-sig-section">
         <div class="terms-block">

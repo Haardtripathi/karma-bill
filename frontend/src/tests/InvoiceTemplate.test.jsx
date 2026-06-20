@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react";
 import { render } from "@testing-library/react";
 import InvoiceTemplate from "../components/invoice/InvoiceTemplate.jsx";
 
-const company = { businessName: "KARMA AUTOMOBILES", invoiceTitle: "Tax Invoice", defaultTerms: "Thank you", phone: "7698633516" };
+const company = { businessName: "KARMA AUTOMOBILES", invoiceTitle: "Tax Invoice", defaultTerms: "Thank you", phone: "7698633516", upiId: "karma@upi", bankAccountName: "Karma Automobiles", bankName: "HDFC Bank", bankAccountNumber: "1234567890", bankIfsc: "HDFC0001234", bankBranch: "Vasna", paymentQrUrl: "https://example.com/qr.png" };
 const invoice = {
   invoiceNumber: 107,
   invoiceCode: "KA-107",
@@ -23,7 +23,7 @@ const invoice = {
   grandTotal: 364.3,
   receivedAmount: 100,
   balanceAmount: 264.3,
-  paymentMode: "Cash",
+  paymentMode: "UPI",
   status: "partial"
 };
 
@@ -34,13 +34,18 @@ test("InvoiceTemplate renders business, customer, invoice, line item, total, bal
   expect(screen.getByText(/KA-107/)).toBeInTheDocument();
   expect(screen.getByText("Engine oil")).toBeInTheDocument();
   expect(screen.getAllByText("₹ 364.3").length).toBeGreaterThan(0);
-  expect(screen.getByText("₹ 264.3")).toBeInTheDocument();
+  expect(screen.getAllByText("₹ 264.3").length).toBeGreaterThan(0);
   expect(screen.getAllByText(/View Image/i).length).toBeGreaterThan(0);
-  expect(screen.getByText("Description:")).toBeInTheDocument();
+  expect(screen.queryByText("Description:")).not.toBeInTheDocument();
   expect(screen.getByText("Remarks:")).toBeInTheDocument();
   expect(screen.getByText("Next Service KM:")).toBeInTheDocument();
   expect(screen.getByText(/Honda City/)).toBeInTheDocument();
   expect(screen.getByText(/Next service after 5000 KM/)).toBeInTheDocument();
+  expect(screen.getByText("Vehicle / Service:")).toBeInTheDocument();
+  expect(screen.getByText("Quick Details:")).toBeInTheDocument();
+  expect(screen.getByText("karma@upi")).toBeInTheDocument();
+  expect(screen.getByText("HDFC Bank")).toBeInTheDocument();
+  expect(screen.getByAltText("Payment QR")).toHaveAttribute("src", "https://example.com/qr.png");
 });
 
 test("InvoiceTemplate uses uploaded logo and keeps the bold business name", () => {

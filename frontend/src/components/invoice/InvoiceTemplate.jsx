@@ -31,6 +31,16 @@ function BillDetail({ label, value }) {
   return <div className="bill-detail"><strong>{label}:</strong> <span>{value}</span></div>;
 }
 
+function PaymentDetail({ label, value }) {
+  if (!value) return null;
+  return <div className="payment-detail-row"><strong>{label}:</strong> <span>{value}</span></div>;
+}
+
+function MiniDetail({ label, value }) {
+  if (!value) return null;
+  return <div className="invoice-mini-row"><strong>{label}:</strong> <span>{value}</span></div>;
+}
+
 export default function InvoiceTemplate({ invoice, company }) {
   if (!invoice || !company) return null;
   const totalQuantity = invoice.lineItems?.reduce((sum, item) => sum + Number(item.quantity || 0), 0) || 0;
@@ -48,6 +58,22 @@ export default function InvoiceTemplate({ invoice, company }) {
     ["Year", invoice.yearOfManufacture],
     ["PUC Expiry", formatMaybeDate(invoice.pucExpiryDate)],
     ["Insurance", formatMaybeDate(invoice.insuranceExpiryDate)]
+  ];
+  const paymentMode = invoice.paymentMode || company.defaultPaymentMode || "Cash";
+  const showPaymentDetails = ["UPI", "Bank Transfer"].includes(paymentMode);
+  const paymentDetails = showPaymentDetails ? [
+    ...(paymentMode === "UPI" ? [["UPI ID", company.upiId]] : []),
+    ["A/C Name", company.bankAccountName],
+    ["Bank", company.bankName],
+    ["A/C No", company.bankAccountNumber],
+    ["IFSC", company.bankIfsc],
+    ["Branch", company.bankBranch]
+  ] : [];
+  const showPaymentQr = paymentMode === "UPI" && hasUsableImage(company.paymentQrUrl);
+  const invoiceQuickDetails = [
+    ["Status", invoice.status],
+    ["Payment", paymentMode],
+    ["Balance", formatBillCurrency(invoice.balanceAmount)]
   ];
 
   return (
@@ -70,21 +96,36 @@ export default function InvoiceTemplate({ invoice, company }) {
 
       <section className="invoice-meta-grid">
         <div className="invoice-bill-to">
-          <div className="invoice-section-label">Bill To:</div>
-          <div className="invoice-customer-name">{invoice.customer?.name}</div>
-          {invoice.customer?.address && <div className="invoice-customer-address">{invoice.customer.address}</div>}
-          {invoice.customer?.phone && <div className="invoice-customer-address"><strong>Phone:</strong> {invoice.customer.phone}</div>}
-          {billToDetails.some(([, value]) => value) && (
-            <div className="bill-detail-grid">
-              {billToDetails.map(([label, value]) => <BillDetail key={label} label={label} value={value} />)}
+          <div className="bill-to-layout">
+            <div className="bill-customer-block">
+              <div className="invoice-section-label">Bill To:</div>
+              <div className="invoice-customer-name">{invoice.customer?.name}</div>
+              {invoice.customer?.address && <div className="invoice-customer-address">{invoice.customer.address}</div>}
+              {invoice.customer?.phone && <div className="invoice-customer-address"><strong>Phone:</strong> {invoice.customer.phone}</div>}
             </div>
-          )}
+            {billToDetails.some(([, value]) => value) && (
+              <div className="bill-vehicle-block">
+                <div className="invoice-section-label compact">Vehicle / Service:</div>
+                <div className="bill-detail-grid">
+                  {billToDetails.map(([label, value]) => <BillDetail key={label} label={label} value={value} />)}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         <div className="invoice-details-box">
-          <div className="invoice-section-label">Invoice Details:</div>
-          <div className="invoice-detail-row"><span>No:</span><span>{invoice.invoiceCode || invoice.invoiceNumber}</span></div>
-          <div className="invoice-detail-row"><span>Date:</span><span>{formatDateTime(invoice.invoiceDate)}</span></div>
-          {invoice.deliveryDate && <div className="invoice-detail-row"><span>Delivery:</span><span>{formatDateTime(invoice.deliveryDate)}</span></div>}
+          <div className="invoice-details-layout">
+            <div className="invoice-detail-main">
+              <div className="invoice-section-label">Invoice Details:</div>
+              <div className="invoice-detail-row"><span>No:</span><span>{invoice.invoiceCode || invoice.invoiceNumber}</span></div>
+              <div className="invoice-detail-row"><span>Date:</span><span>{formatDateTime(invoice.invoiceDate)}</span></div>
+              {invoice.deliveryDate && <div className="invoice-detail-row"><span>Delivery:</span><span>{formatDateTime(invoice.deliveryDate)}</span></div>}
+            </div>
+            <div className="invoice-mini-summary">
+              <div className="invoice-section-label compact">Quick Details:</div>
+              {invoiceQuickDetails.map(([label, value]) => <MiniDetail key={label} label={label} value={value} />)}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -127,7 +168,15 @@ export default function InvoiceTemplate({ invoice, company }) {
       <section className="invoice-summary-section">
         <div className="invoice-payment-mode">
           <div className="invoice-section-label">Payment Mode:</div>
-          <div>{invoice.paymentMode || company.defaultPaymentMode || "Cash"}</div>
+          <div className="payment-mode-row"><strong>Mode:</strong><span className="payment-mode-value">{paymentMode}</span></div>
+          {(paymentDetails.some(([, value]) => value) || showPaymentQr) && (
+            <div className="payment-content">
+              <div className="payment-detail-list">
+                {paymentDetails.map(([label, value]) => <PaymentDetail key={label} label={label} value={value} />)}
+              </div>
+              {showPaymentQr && <img className="payment-qr" src={company.paymentQrUrl} alt="Payment QR" />}
+            </div>
+          )}
         </div>
         <div className="invoice-summary-right">
           <div className="summary-row"><span className="label">Sub Total</span><span className="colon">:</span><span className="value">{formatBillCurrency(invoice.subTotal)}</span></div>
@@ -141,14 +190,8 @@ export default function InvoiceTemplate({ invoice, company }) {
 
       <section className="invoice-footer-section">
         <div className="invoice-desc-section">
-          <div className="invoice-section-label">Description:</div>
-          <div className="description-placeholder">Service / parts description as per line items above.</div>
-          {remarksText && (
-            <div className="remarks-block">
-              <div className="invoice-section-label">Remarks:</div>
-              <div className="remarks-text">{remarksText}</div>
-            </div>
-          )}
+          <div className="invoice-section-label">Remarks:</div>
+          <div className="remarks-text">{remarksText || " "}</div>
         </div>
         <div className="terms-sig-section">
           <div className="terms-block">

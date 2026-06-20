@@ -14,6 +14,12 @@ const updateCompanySettingSchema = z.object({
     invoiceTitle: z.string().optional(),
     defaultTerms: z.string().optional(),
     defaultPaymentMode: z.enum(["Cash", "UPI", "Card", "Bank Transfer", "Cheque", "Other"]).optional(),
+    upiId: z.string().optional(),
+    bankAccountName: z.string().optional(),
+    bankName: z.string().optional(),
+    bankAccountNumber: z.string().optional(),
+    bankIfsc: z.string().optional(),
+    bankBranch: z.string().optional(),
     invoicePrefix: z.string().optional(),
     nextInvoiceNumber: z.coerce.number().min(1).optional()
   }),

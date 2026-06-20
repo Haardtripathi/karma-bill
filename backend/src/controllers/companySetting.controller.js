@@ -33,9 +33,19 @@ const uploadCompanySignature = asyncHandler(async (req, res) => {
   successResponse(res, "Company signature uploaded", setting);
 });
 
+const uploadCompanyPaymentQr = asyncHandler(async (req, res) => {
+  const uploaded = await uploadImage(req.file, "payment-qr");
+  const setting = await CompanySetting.getDefaultSetting();
+  setting.paymentQrUrl = uploaded.url;
+  setting.paymentQrPublicId = uploaded.publicId;
+  await setting.save();
+  successResponse(res, "Payment QR uploaded", setting);
+});
+
 module.exports = {
   getCompanySettings,
   updateCompanySettings,
   uploadCompanyLogo,
-  uploadCompanySignature
+  uploadCompanySignature,
+  uploadCompanyPaymentQr
 };

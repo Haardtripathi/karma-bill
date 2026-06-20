@@ -12,3 +12,9 @@ export const uploadCompanySignature = (file) => {
   formData.append("image", file);
   return api.post("/company-settings/signature", formData).then((res) => res.data);
 };
+
+export const uploadCompanyPaymentQr = (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+  return api.post("/company-settings/payment-qr", formData).then((res) => res.data);
+};
