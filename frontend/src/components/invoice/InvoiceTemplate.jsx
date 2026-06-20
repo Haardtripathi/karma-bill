@@ -50,13 +50,13 @@ export default function InvoiceTemplate({ invoice, company }) {
   const remarksText = invoice.remarks || invoice.description || "";
   const carDisplayName = [invoice.carBrand, invoice.carName].filter(Boolean).join(" ");
   const billToDetails = [
-    ["Next Service KM", formatKilometer(invoice.nextServiceKilometer)],
-    ["Vehicle No", invoice.customer?.vehicleNumber],
+    ["Next KM", formatKilometer(invoice.nextServiceKilometer)],
+    ["Vehicle", invoice.customer?.vehicleNumber],
     ["Current KM", invoice.customer?.vehicleKm],
     ["Car", carDisplayName],
     ["Fuel", invoice.fuelType],
     ["Year", invoice.yearOfManufacture],
-    ["PUC Expiry", formatMaybeDate(invoice.pucExpiryDate)],
+    ["PUC", formatMaybeDate(invoice.pucExpiryDate)],
     ["Insurance", formatMaybeDate(invoice.insuranceExpiryDate)]
   ];
   const paymentMode = invoice.paymentMode || company.defaultPaymentMode || "Cash";
