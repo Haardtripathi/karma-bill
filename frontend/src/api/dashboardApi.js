@@ -1,3 +1,3 @@
 import api from "./axiosInstance";
 
-export const getDashboardSummary = () => api.get("/dashboard/summary").then((res) => res.data);
+export const getDashboardSummary = (params = {}) => api.get("/dashboard/summary", { params }).then((res) => res.data);

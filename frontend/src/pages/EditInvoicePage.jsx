@@ -152,8 +152,8 @@ export default function EditInvoicePage() {
       <div className="panel page">
         <CustomerPicker customers={customers} selectedCustomerId={selectedCustomerId} quickCustomer={quickCustomer} onSelect={handleCustomerSelect} onQuickChange={(patch) => setQuickCustomer((current) => ({ ...current, ...patch }))} />
         <div className="form-grid invoice-date-grid" style={{ margin: "16px 0" }}>
-          <DateTimeFields labelPrefix="Invoice" dateLabel="Invoice date" dateValue={form.invoiceDate} timeValue={form.invoiceTime} onDateChange={(invoiceDate) => setForm((current) => ({ ...current, invoiceDate }))} onTimeChange={(invoiceTime) => setForm((current) => ({ ...current, invoiceTime }))} />
-          <DateTimeFields labelPrefix="Delivery" dateLabel="Delivery date" dateValue={form.deliveryDate} timeValue={form.deliveryTime} onDateChange={(deliveryDate) => setForm((current) => ({ ...current, deliveryDate }))} onTimeChange={(deliveryTime) => setForm((current) => ({ ...current, deliveryTime }))} />
+          <DateTimeFields dateLabel="Invoice date" dateValue={form.invoiceDate} timeValue={form.invoiceTime} onDateChange={(invoiceDate) => setForm((current) => ({ ...current, invoiceDate }))} onTimeChange={(invoiceTime) => setForm((current) => ({ ...current, invoiceTime }))} />
+          <DateTimeFields dateLabel="Delivery date" dateValue={form.deliveryDate} timeValue={form.deliveryTime} onDateChange={(deliveryDate) => setForm((current) => ({ ...current, deliveryDate }))} onTimeChange={(deliveryTime) => setForm((current) => ({ ...current, deliveryTime }))} />
           <Input label="Discount" type="number" min="0" value={form.discountAmount} onChange={(event) => setForm((current) => ({ ...current, discountAmount: event.target.value }))} />
         </div>
         <VehicleDetailsFields value={form.vehicleDetails} onChange={(vehicleDetails) => setForm((current) => ({ ...current, vehicleDetails }))} />

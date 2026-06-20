@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { CalendarDays, CheckCircle2, CircleAlert, Clock3, FilePlus2, IndianRupee, PencilLine, ReceiptText, WalletCards } from "lucide-react";
 import StatCard from "../components/common/StatCard.jsx";
 import Loader from "../components/common/Loader.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
+import DateRangeFilter, { getDateRangeLabel } from "../components/common/DateRangeFilter.jsx";
 import WhatsappSendButton from "../components/invoice/WhatsappSendButton.jsx";
 import PrintButton from "../components/invoice/PrintButton.jsx";
 import { getDashboardSummary } from "../api/dashboardApi.js";
@@ -15,10 +17,15 @@ import toast from "react-hot-toast";
 import { openPdfUrl } from "../utils/pdfWindow.js";
 
 export default function DashboardPage() {
-  const { data, isLoading } = useQuery({ queryKey: ["dashboard-summary"], queryFn: getDashboardSummary });
+  const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboard-summary", dateRange.startDate, dateRange.endDate],
+    queryFn: () => getDashboardSummary(dateRange)
+  });
   if (isLoading) return <Loader label="Loading dashboard..." />;
   const summary = data || {};
   const recent = summary.recentInvoices || [];
+  const activeRangeLabel = getDateRangeLabel(dateRange.startDate, dateRange.endDate);
 
   const sendWhatsapp = async (id) => {
     try {
@@ -36,7 +43,10 @@ export default function DashboardPage() {
           <h2>Dashboard</h2>
           <p>Confirmed billing, receivables, drafts and recent transactions.</p>
         </div>
-        <Link className="btn btn-primary" to="/invoices/new"><FilePlus2 size={17} /> Create Invoice</Link>
+        <div className="actions-row">
+          <DateRangeFilter label="Dashboard range" startDate={dateRange.startDate} endDate={dateRange.endDate} onChange={setDateRange} compact />
+          <Link className="btn btn-primary" to="/invoices/new"><FilePlus2 size={17} /> Create Invoice</Link>
+        </div>
       </div>
       <div className="stat-grid">
         <StatCard icon={ReceiptText} label="Total invoices" value={summary.totalInvoices || 0} detail="Includes drafts" />
@@ -52,7 +62,7 @@ export default function DashboardPage() {
         <StatCard icon={CircleAlert} label="Unpaid invoices" value={summary.unpaidInvoices || 0} tone="danger" />
       </div>
       <div className="panel">
-        <div className="section-heading"><h2>Recent invoices</h2><Link to="/invoices">View all</Link></div>
+        <div className="section-heading"><div><h2>Recent invoices</h2><p>{activeRangeLabel}</p></div><Link to="/invoices">View all</Link></div>
         {!recent.length ? <EmptyState title="No recent invoices" /> : (
           <div className="table-scroll">
             <table className="data-table">

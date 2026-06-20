@@ -3,8 +3,20 @@ const { startOfToday, endOfToday } = require("../utils/date.util");
 
 const isConfirmedInvoice = (invoice) => !["draft", "cancelled"].includes(invoice.status);
 
-const getDashboardSummary = async () => {
-  const activeFilter = { isDeleted: false };
+const getDateFilter = ({ startDate, endDate } = {}) => {
+  if (!startDate && !endDate) return {};
+  const invoiceDate = {};
+  if (startDate) invoiceDate.$gte = new Date(startDate);
+  if (endDate) {
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    invoiceDate.$lte = end;
+  }
+  return { invoiceDate };
+};
+
+const getDashboardSummary = async (range = {}) => {
+  const activeFilter = { isDeleted: false, ...getDateFilter(range) };
   const [invoices, recentInvoices] = await Promise.all([
     Invoice.find(activeFilter).lean(),
     Invoice.find(activeFilter).sort({ invoiceDate: -1, createdAt: -1 }).limit(8).lean()

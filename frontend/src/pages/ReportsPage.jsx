@@ -5,7 +5,7 @@ import { formatCurrency } from "../utils/currency.js";
 import { formatDate } from "../utils/date.js";
 import Loader from "../components/common/Loader.jsx";
 import SearchBar from "../components/common/SearchBar.jsx";
-import Input from "../components/common/Input.jsx";
+import DateRangeFilter, { getDateRangeLabel } from "../components/common/DateRangeFilter.jsx";
 import useDebounce from "../hooks/useDebounce.js";
 import { getSalesReport, getCustomerBalancesReport, getItemSalesReport } from "../api/reportApi.js";
 
@@ -15,6 +15,7 @@ export default function ReportsPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const debouncedSearch = useDebounce(search);
+  const activeRangeLabel = getDateRangeLabel(fromDate, toDate);
 
   const salesQuery = useQuery({
     queryKey: ["reports", "sales", debouncedSearch, fromDate, toDate],
@@ -46,8 +47,7 @@ export default function ReportsPage() {
       <div className="panel" style={{ marginBottom: "1rem" }}>
         <div className="toolbar-row">
           <SearchBar value={search} onChange={setSearch} placeholder={activeTab === "sales" ? "Search invoices or customers..." : activeTab === "customers" ? "Search customers..." : "Search items..."} />
-          <Input label="From date" type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} />
-          <Input label="To date" type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} />
+          <DateRangeFilter label="Report range" startDate={fromDate} endDate={toDate} onChange={({ startDate, endDate }) => { setFromDate(startDate); setToDate(endDate); }} />
         </div>
       </div>
 
@@ -60,7 +60,7 @@ export default function ReportsPage() {
       <div className="panel" style={{ marginTop: "1.5rem" }}>
         {activeTab === "sales" && (
           <div>
-            <h3>Sales Overview</h3>
+            <div className="report-section-title"><h3>Sales Overview</h3><span>{activeRangeLabel}</span></div>
             {salesQuery.isLoading ? <Loader /> : salesQuery.error ? <p>Error loading sales.</p> : (
               <>
                 <div className="dashboard-grid">
@@ -107,7 +107,7 @@ export default function ReportsPage() {
 
         {activeTab === "customers" && (
           <div>
-            <h3>Customer Balances</h3>
+            <div className="report-section-title"><h3>Customer Balances</h3><span>{activeRangeLabel}</span></div>
             {customerQuery.isLoading ? <Loader /> : customerQuery.error ? <p>Error loading balances.</p> : (
               <div className="table-responsive">
                 <table className="data-table">
@@ -136,7 +136,7 @@ export default function ReportsPage() {
 
         {activeTab === "items" && (
           <div>
-            <h3>Item Sales</h3>
+            <div className="report-section-title"><h3>Item Sales</h3><span>{activeRangeLabel}</span></div>
             {itemsQuery.isLoading ? <Loader /> : itemsQuery.error ? <p>Error loading item sales.</p> : (
               <div className="table-responsive">
                 <table className="data-table">

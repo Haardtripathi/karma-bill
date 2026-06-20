@@ -138,8 +138,8 @@ export default function CreateInvoicePage() {
       <div className="panel page">
         <CustomerPicker customers={customers} selectedCustomerId={selectedCustomerId} quickCustomer={quickCustomer} onSelect={handleCustomerSelect} onQuickChange={(patch) => setQuickCustomer((current) => ({ ...current, ...patch }))} />
         <div className="form-grid invoice-date-grid" style={{ margin: "16px 0" }}>
-          <DateTimeFields labelPrefix="Invoice" dateLabel="Invoice date" dateValue={invoiceDate} timeValue={invoiceTime} onDateChange={setInvoiceDate} onTimeChange={setInvoiceTime} />
-          <DateTimeFields labelPrefix="Delivery" dateLabel="Delivery date" dateValue={deliveryDate} timeValue={deliveryTime} onDateChange={setDeliveryDate} onTimeChange={setDeliveryTime} />
+          <DateTimeFields dateLabel="Invoice date" dateValue={invoiceDate} timeValue={invoiceTime} onDateChange={setInvoiceDate} onTimeChange={setInvoiceTime} />
+          <DateTimeFields dateLabel="Delivery date" dateValue={deliveryDate} timeValue={deliveryTime} onDateChange={setDeliveryDate} onTimeChange={setDeliveryTime} />
           <Input label="Discount" type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} />
         </div>
         <VehicleDetailsFields value={vehicleDetails} onChange={setVehicleDetails} />

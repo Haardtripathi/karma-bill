@@ -1,27 +1,57 @@
 import Input from "../common/Input.jsx";
-import Select from "../common/Select.jsx";
-
-const HOURS = Array.from({ length: 12 }, (_, index) => String(index + 1));
-const MINUTES = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
 
 export const defaultTimeParts = { hour: "12", minute: "00", period: "PM" };
 
-export default function DateTimeFields({ labelPrefix, dateLabel, dateValue, timeValue = defaultTimeParts, onDateChange, onTimeChange }) {
-  const updateTime = (patch) => onTimeChange({ ...defaultTimeParts, ...timeValue, ...patch });
+const pad = (value) => String(value).padStart(2, "0");
+
+const toTwentyFourHour = (timeValue = defaultTimeParts) => {
+  const hour = Math.min(Math.max(Number(timeValue.hour || defaultTimeParts.hour), 1), 12);
+  const minute = Math.min(Math.max(Number(timeValue.minute || defaultTimeParts.minute), 0), 59);
+  const period = timeValue.period === "AM" ? "AM" : "PM";
+  return { hour: pad((hour % 12) + (period === "PM" ? 12 : 0)), minute: pad(minute) };
+};
+
+const toTimeParts = (hour24Value, minuteValue) => {
+  const hour24 = Math.min(Math.max(Number(hour24Value || 0), 0), 23);
+  return {
+    hour: String(hour24 % 12 || 12),
+    minute: pad(Math.min(Math.max(Number(minuteValue || 0), 0), 59)),
+    period: hour24 >= 12 ? "PM" : "AM"
+  };
+};
+
+const formatTimeLabel = (timeValue) => {
+  const normalized = { ...defaultTimeParts, ...timeValue };
+  return pad(normalized.hour) + ":" + pad(normalized.minute) + " " + normalized.period;
+};
+
+export default function DateTimeFields({ dateLabel, dateValue, timeValue = defaultTimeParts, onDateChange, onTimeChange }) {
+  const time24 = toTwentyFourHour(timeValue);
+  const value = dateValue ? dateValue + "T" + time24.hour + ":" + time24.minute : "";
+
+  const handleChange = (event) => {
+    const nextValue = event.target.value || "";
+    if (!nextValue) {
+      onDateChange("");
+      onTimeChange(defaultTimeParts);
+      return;
+    }
+
+    const [datePart, timePart = ""] = nextValue.split("T");
+    const [hourPart = "12", minutePart = "00"] = timePart.split(":");
+    onDateChange(datePart || "");
+    onTimeChange(toTimeParts(hourPart, minutePart));
+  };
 
   return (
-    <>
-      <Input label={dateLabel} type="date" value={dateValue || ""} onChange={(event) => onDateChange(event.target.value)} />
-      <Select label={labelPrefix + " hour"} value={timeValue.hour || defaultTimeParts.hour} onChange={(event) => updateTime({ hour: event.target.value })}>
-        {HOURS.map((hour) => <option key={hour} value={hour}>{hour.padStart(2, "0")}</option>)}
-      </Select>
-      <Select label={labelPrefix + " minute"} value={timeValue.minute || defaultTimeParts.minute} onChange={(event) => updateTime({ minute: event.target.value })}>
-        {MINUTES.map((minute) => <option key={minute} value={minute}>{minute}</option>)}
-      </Select>
-      <Select label={labelPrefix + " AM/PM"} value={timeValue.period || defaultTimeParts.period} onChange={(event) => updateTime({ period: event.target.value })}>
-        <option value="AM">AM</option>
-        <option value="PM">PM</option>
-      </Select>
-    </>
+    <Input
+      className="date-time-field"
+      label={dateLabel}
+      type="datetime-local"
+      value={value}
+      helperText={dateValue ? "Selected " + formatTimeLabel(timeValue) : ""}
+      onChange={handleChange}
+      inputProps={{ step: 60 }}
+    />
   );
 }
