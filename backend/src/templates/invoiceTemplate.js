@@ -180,7 +180,7 @@ const invoiceTemplate = ({ invoice, company }) => {
     .invoice-mini-summary { border-left: 1px dashed #c9c9c9; padding-left: 12px; }
     .invoice-detail-row { font-size: 12px; display: flex; gap: 6px; margin-bottom: 2px; overflow-wrap: anywhere; }
     .invoice-detail-row span:first-child { font-weight: 600; min-width: 56px; }
-    .invoice-detail-row span:last-child { white-space: nowrap; }
+    .invoice-detail-row span:last-child { white-space: normal; overflow-wrap: anywhere; }
     .invoice-mini-row { font-size: 11.5px; line-height: 1.25; margin-bottom: 2px; overflow-wrap: anywhere; }
     .invoice-mini-row strong { font-weight: 800; }
     .invoice-mini-row span { font-weight: 700; color: #111; text-transform: capitalize; }

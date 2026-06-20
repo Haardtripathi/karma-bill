@@ -33,7 +33,7 @@ function BillDetail({ label, value }) {
 
 function PaymentDetail({ label, value }) {
   if (!value) return null;
-  return <div className="payment-detail-row"><strong>{label}:</strong> <span>{value}</span></div>;
+  return <div className="payment-detail-row"><strong>{label}</strong><span>{value}</span></div>;
 }
 
 function MiniDetail({ label, value }) {
@@ -167,8 +167,7 @@ export default function InvoiceTemplate({ invoice, company }) {
 
       <section className="invoice-summary-section">
         <div className="invoice-payment-mode">
-          <div className="invoice-section-label">Payment Mode:</div>
-          <div className="payment-mode-row"><strong>Mode:</strong><span className="payment-mode-value">{paymentMode}</span></div>
+          <div className="invoice-section-label">Payment Mode: {paymentMode}</div>
           {(paymentDetails.some(([, value]) => value) || showPaymentQr) && (
             <div className="payment-content">
               <div className="payment-detail-list">
