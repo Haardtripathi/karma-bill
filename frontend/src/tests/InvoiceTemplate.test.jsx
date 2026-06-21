@@ -38,8 +38,15 @@ test("InvoiceTemplate renders business, customer, invoice, line item, total, bal
   expect(screen.getAllByText(/View Image/i).length).toBeGreaterThan(0);
   expect(screen.queryByText("Description:")).not.toBeInTheDocument();
   expect(screen.getByText("Remarks:")).toBeInTheDocument();
-  expect(screen.getByText("Next KM:")).toBeInTheDocument();
-  expect(screen.getByText(/Honda City/)).toBeInTheDocument();
+  expect(screen.getByText("Vehicle make:")).toBeInTheDocument();
+  expect(screen.getByText("Vehicle name:")).toBeInTheDocument();
+  expect(screen.getByText("Make year:")).toBeInTheDocument();
+  expect(screen.getByText("Fuel type:")).toBeInTheDocument();
+  expect(screen.getByText("Num:")).toBeInTheDocument();
+  expect(screen.getByText("Current km:")).toBeInTheDocument();
+  expect(screen.getByText("Next service km:")).toBeInTheDocument();
+  expect(screen.getByText("Puc expiry:")).toBeInTheDocument();
+  expect(screen.getByText("Insurance expiry:")).toBeInTheDocument();
   expect(screen.getByText(/Next service after 5000 KM/)).toBeInTheDocument();
   expect(screen.getByText("Vehicle / Service:")).toBeInTheDocument();
   expect(screen.getByText("Quick Details:")).toBeInTheDocument();

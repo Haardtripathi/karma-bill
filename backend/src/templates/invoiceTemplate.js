@@ -84,16 +84,16 @@ const invoiceTemplate = ({ invoice, company }) => {
   const logoUrl = company.logoUrl || defaultLogoBase64;
   const hasBrandLogo = !!logoUrl;
   const remarksText = invoice.remarks || invoice.description || "";
-  const carDisplayName = [invoice.carBrand, invoice.carName].filter(Boolean).join(" ");
   const billToDetailRows = [
-    ["Next KM", formatKilometer(invoice.nextServiceKilometer)],
-    ["Vehicle", invoice.customer?.vehicleNumber],
-    ["Current KM", invoice.customer?.vehicleKm],
-    ["Car", carDisplayName],
-    ["Fuel", invoice.fuelType],
-    ["Year", invoice.yearOfManufacture],
-    ["PUC", formatMaybeDate(invoice.pucExpiryDate)],
-    ["Insurance", formatMaybeDate(invoice.insuranceExpiryDate)]
+    ["Vehicle make", invoice.carBrand],
+    ["Vehicle name", invoice.carName],
+    ["Make year", invoice.yearOfManufacture],
+    ["Fuel type", invoice.fuelType],
+    ["Num", invoice.customer?.vehicleNumber],
+    ["Current km", invoice.customer?.vehicleKm],
+    ["Next service km", formatKilometer(invoice.nextServiceKilometer)],
+    ["Puc expiry", formatMaybeDate(invoice.pucExpiryDate)],
+    ["Insurance expiry", formatMaybeDate(invoice.insuranceExpiryDate)]
   ].map(([label, value]) => billDetailMarkup(label, value)).join("");
   const paymentMode = invoice.paymentMode || company.defaultPaymentMode || "Cash";
   const showPaymentDetails = ["UPI", "Bank Transfer"].includes(paymentMode);
