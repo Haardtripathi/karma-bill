@@ -7,7 +7,7 @@ const customerSnapshotSchema = new mongoose.Schema(
     phone: { type: String, trim: true, default: "" },
     email: { type: String, trim: true, default: "" },
     address: { type: String, trim: true, default: "" },
-    vehicleNumber: { type: String, trim: true, default: "" },
+    vehicleNumber: { type: String, trim: true, uppercase: true, default: "" },
     vehicleKm: { type: String, trim: true, default: "" }
   },
   { _id: false }

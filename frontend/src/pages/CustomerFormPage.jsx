@@ -9,6 +9,7 @@ import Loader from "../components/common/Loader.jsx";
 import { createCustomer, getCustomer, updateCustomer } from "../api/customerApi.js";
 
 const blank = { name: "", phone: "", email: "", address: "", vehicleNumber: "", vehicleKm: "", notes: "" };
+const toVehicleNumber = (value) => String(value || "").toUpperCase();
 
 export default function CustomerFormPage() {
   const { id } = useParams();
@@ -33,7 +34,7 @@ export default function CustomerFormPage() {
           <Input label="Name" required value={form.name} onChange={(event) => set({ name: event.target.value })} />
           <Input label="Phone" required value={form.phone} onChange={(event) => set({ phone: event.target.value })} />
           <Input label="Email" value={form.email} onChange={(event) => set({ email: event.target.value })} />
-          <Input label="Vehicle number" value={form.vehicleNumber} onChange={(event) => set({ vehicleNumber: event.target.value })} />
+          <Input label="Vehicle number" value={form.vehicleNumber} inputProps={{ style: { textTransform: "uppercase" } }} onChange={(event) => set({ vehicleNumber: toVehicleNumber(event.target.value) })} />
           <Input label="Vehicle KM" value={form.vehicleKm} onChange={(event) => set({ vehicleKm: event.target.value })} />
           <Input label="Address" value={form.address} onChange={(event) => set({ address: event.target.value })} />
           <Textarea className="span-two" label="Notes" value={form.notes} onChange={(event) => set({ notes: event.target.value })} />

@@ -1,7 +1,7 @@
 const request = require("supertest");
 const app = require("../app");
 
-const customer = { name: "Kiran Shah", phone: "9876543210", vehicleNumber: "GJ01ZZ1111", vehicleKm: "45000" };
+const customer = { name: "Kiran Shah", phone: "9876543210", vehicleNumber: "gj01zz1111", vehicleKm: "45000" };
 
 const createInvoice = () =>
   request(app).post("/api/invoices").send({
@@ -27,6 +27,7 @@ describe("Invoice API", () => {
     expect(res.statusCode).toBe(201);
     expect(res.body.data.invoiceCode).toBe("KA-107");
     expect(res.body.data.customer.name).toBe(customer.name);
+    expect(res.body.data.customer.vehicleNumber).toBe("GJ01ZZ1111");
     expect(res.body.data.carName).toBe("City");
     expect(res.body.data.carBrand).toBe("Honda");
     expect(res.body.data.fuelType).toBe("Petrol-CNG");
@@ -56,7 +57,7 @@ describe("Invoice API", () => {
         phone: "9876543211",
         email: "existing@example.com",
         address: "Invoice address",
-        vehicleNumber: "GJ02BB2222",
+        vehicleNumber: "gj02bb2222",
         vehicleKm: "48200"
       },
       lineItems: [{ itemName: "Wheel alignment", quantity: 1, unitPrice: 700 }],

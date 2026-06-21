@@ -78,60 +78,63 @@ export default function InvoiceTemplate({ invoice, company }) {
 
   return (
     <article className="invoice-template">
-      <header className="invoice-title">{company.invoiceTitle || "Tax Invoice"}</header>
-
-      <section className="invoice-company">
-        <div className={`invoice-logo-area brand-logo-area`}>
-          <img className="invoice-logo-image" src={logoUrl} alt="Company logo" />
-        </div>
-        <div className="invoice-company-info no-heading">
-          <h1 className="invoice-business-name">{company.businessName || "KARMA AUTOMOBILES"}</h1>
-          <p>{companyAddress(company)}</p>
-          <div className="invoice-company-contact">
-            <span><strong>Phone:</strong> {company.phone}</span>
-            <span><strong>Email:</strong> {company.email}</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="invoice-meta-grid">
-        <div className="invoice-bill-to">
-          <div className="bill-to-layout">
-            <div className="bill-customer-block">
-              <div className="invoice-section-label">Bill To:</div>
-              <div className="invoice-customer-name">{invoice.customer?.name}</div>
-              {invoice.customer?.address && <div className="invoice-customer-address">{invoice.customer.address}</div>}
-              {invoice.customer?.phone && <div className="invoice-customer-address"><strong>Phone:</strong> {invoice.customer.phone}</div>}
-            </div>
-            {billToDetails.some(([, value]) => value) && (
-              <div className="bill-vehicle-block">
-                <div className="invoice-section-label compact">Vehicle / Service:</div>
-                <div className="bill-detail-grid">
-                  {billToDetails.map(([label, value]) => <BillDetail key={label} label={label} value={value} />)}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="invoice-details-box">
-          <div className="invoice-details-layout">
-            <div className="invoice-detail-main">
-              <div className="invoice-section-label">Invoice Details:</div>
-              <div className="invoice-detail-row"><span>No:</span><span>{invoice.invoiceCode || invoice.invoiceNumber}</span></div>
-              <div className="invoice-detail-row"><span>Date:</span><span>{formatDateTime(invoice.invoiceDate)}</span></div>
-              {invoice.deliveryDate && <div className="invoice-detail-row"><span>Delivery:</span><span>{formatDateTime(invoice.deliveryDate)}</span></div>}
-            </div>
-            <div className="invoice-mini-summary">
-              <div className="invoice-section-label compact">Quick Details:</div>
-              {invoiceQuickDetails.map(([label, value]) => <MiniDetail key={label} label={label} value={value} />)}
-            </div>
-          </div>
-        </div>
-      </section>
-
       <div className="invoice-table-wrap">
-        <table className="invoice-lines">
+        <table className="invoice-lines invoice-print-table">
           <thead>
+            <tr className="invoice-page-header-row">
+              <th colSpan={5} className="invoice-page-header-cell">
+                <header className="invoice-title">{company.invoiceTitle || "Tax Invoice"}</header>
+
+                <section className="invoice-company">
+                  <div className={`invoice-logo-area brand-logo-area`}>
+                    <img className="invoice-logo-image" src={logoUrl} alt="Company logo" />
+                  </div>
+                  <div className="invoice-company-info no-heading">
+                    <h1 className="invoice-business-name">{company.businessName || "KARMA AUTOMOBILES"}</h1>
+                    <p>{companyAddress(company)}</p>
+                    <div className="invoice-company-contact">
+                      <span><strong>Phone:</strong> {company.phone}</span>
+                      <span><strong>Email:</strong> {company.email}</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="invoice-meta-grid">
+                  <div className="invoice-bill-to">
+                    <div className="bill-to-layout">
+                      <div className="bill-customer-block">
+                        <div className="invoice-section-label">Bill To:</div>
+                        <div className="invoice-customer-name">{invoice.customer?.name}</div>
+                        {invoice.customer?.address && <div className="invoice-customer-address">{invoice.customer.address}</div>}
+                        {invoice.customer?.phone && <div className="invoice-customer-address"><strong>Phone:</strong> {invoice.customer.phone}</div>}
+                      </div>
+                      {billToDetails.some(([, value]) => value) && (
+                        <div className="bill-vehicle-block">
+                          <div className="invoice-section-label compact">Vehicle / Service:</div>
+                          <div className="bill-detail-grid">
+                            {billToDetails.map(([label, value]) => <BillDetail key={label} label={label} value={value} />)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="invoice-details-box">
+                    <div className="invoice-details-layout">
+                      <div className="invoice-detail-main">
+                        <div className="invoice-section-label">Invoice Details:</div>
+                        <div className="invoice-detail-row"><span>No:</span><span>{invoice.invoiceCode || invoice.invoiceNumber}</span></div>
+                        <div className="invoice-detail-row"><span>Date:</span><span>{formatDateTime(invoice.invoiceDate)}</span></div>
+                        {invoice.deliveryDate && <div className="invoice-detail-row"><span>Delivery:</span><span>{formatDateTime(invoice.deliveryDate)}</span></div>}
+                      </div>
+                      <div className="invoice-mini-summary">
+                        <div className="invoice-section-label compact">Quick Details:</div>
+                        {invoiceQuickDetails.map(([label, value]) => <MiniDetail key={label} label={label} value={value} />)}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </th>
+            </tr>
             <tr>
               <th style={{ width: 34 }}>#</th>
               <th>Item Name</th>

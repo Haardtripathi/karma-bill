@@ -1,7 +1,7 @@
 const request = require("supertest");
 const app = require("../app");
 
-const payload = { name: "Rahul Patel", phone: "9876543210", vehicleNumber: "GJ01AB1234", address: "Ahmedabad" };
+const payload = { name: "Rahul Patel", phone: "9876543210", vehicleNumber: "gj01ab1234", address: "Ahmedabad" };
 
 describe("Customer API", () => {
   test("GET /api/health returns success true", async () => {
@@ -14,6 +14,7 @@ describe("Customer API", () => {
     const created = await request(app).post("/api/customers").send(payload);
     expect(created.statusCode).toBe(201);
     expect(created.body.data.name).toBe(payload.name);
+    expect(created.body.data.vehicleNumber).toBe("GJ01AB1234");
 
     const list = await request(app).get("/api/customers");
     expect(list.body.data.items).toHaveLength(1);

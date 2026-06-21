@@ -2,6 +2,8 @@ import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import Input from "../common/Input.jsx";
 
+const toVehicleNumber = (value) => String(value || "").toUpperCase();
+
 export default function CustomerPicker({ customers = [], selectedCustomerId, quickCustomer, onSelect, onQuickChange }) {
   const selectedCustomer = customers.find((c) => c._id === selectedCustomerId) || null;
 
@@ -78,7 +80,7 @@ export default function CustomerPicker({ customers = [], selectedCustomerId, qui
         <Input label="Name" value={quickCustomer.name} onChange={(event) => onQuickChange({ name: event.target.value })} />
         <Input label="Phone" value={quickCustomer.phone} onChange={(event) => onQuickChange({ phone: event.target.value })} />
         <Input label="Email" value={quickCustomer.email || ""} onChange={(event) => onQuickChange({ email: event.target.value })} />
-        <Input label="Vehicle Number" value={quickCustomer.vehicleNumber} onChange={(event) => onQuickChange({ vehicleNumber: event.target.value })} />
+        <Input label="Vehicle Number" value={quickCustomer.vehicleNumber} inputProps={{ style: { textTransform: "uppercase" } }} onChange={(event) => onQuickChange({ vehicleNumber: toVehicleNumber(event.target.value) })} />
         <Input label="Vehicle KM" value={quickCustomer.vehicleKm} onChange={(event) => onQuickChange({ vehicleKm: event.target.value })} />
         <Input label="Address" value={quickCustomer.address} onChange={(event) => onQuickChange({ address: event.target.value })} />
       </div>

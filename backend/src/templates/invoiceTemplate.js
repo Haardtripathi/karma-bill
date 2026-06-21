@@ -185,6 +185,12 @@ const invoiceTemplate = ({ invoice, company }) => {
     .invoice-mini-row strong { font-weight: 800; }
     .invoice-mini-row span { font-weight: 700; color: #111; text-transform: capitalize; }
     table { width: 100%; border-collapse: collapse; }
+    .invoice-print-table { page-break-inside: auto; break-inside: auto; }
+    .invoice-print-table thead { display: table-header-group; }
+    .invoice-print-table tbody { display: table-row-group; }
+    .invoice-print-table tbody tr { page-break-inside: avoid; break-inside: avoid; }
+    .invoice-page-header-cell { padding: 0 !important; border: 0 !important; background: #fff !important; white-space: normal !important; text-align: left !important; font-weight: 400 !important; }
+    .invoice-page-header-row { page-break-inside: avoid; break-inside: avoid; }
     thead tr { background: #e8e8e8; }
     th { padding: 7px 8px; font-size: 12px; font-weight: 700; text-align: left; border: 1px solid #bbb; white-space: nowrap; background: #e8e8e8; }
     td { padding: 6px 8px; font-size: 12px; border: 1px solid #ddd; vertical-align: top; }
@@ -194,7 +200,7 @@ const invoiceTemplate = ({ invoice, company }) => {
     .total-row td { font-weight: 700; background: #f0f0f0 !important; border-top: 2px solid #999; }
     .invoice-item-name { font-weight: 500; }
     small, .image-link { display: block; margin-top: 4px; color: #1a5ce6; font-size: 11.5px; }
-    .invoice-summary-section { display: flex; border-top: 1px solid #bbb; }
+    .invoice-summary-section { display: flex; border-top: 1px solid #bbb; page-break-inside: avoid; break-inside: avoid; }
     .invoice-payment-mode {
       flex: 1;
       padding: 8px 14px;
@@ -255,7 +261,7 @@ const invoiceTemplate = ({ invoice, company }) => {
     .summary-row .value { text-align: right; font-weight: 700; }
     .amount-words { padding: 5px 14px 6px; border-bottom: 1px solid #ddd; font-size: 11.5px; }
     .amount-words .aw-label { font-weight: 700; margin-bottom: 2px; font-size: 12px; }
-    .invoice-footer-section { display: flex; border-top: 2px solid #bbb; }
+    .invoice-footer-section { display: flex; border-top: 2px solid #bbb; page-break-inside: avoid; break-inside: avoid; }
     .invoice-desc-section { flex: 1; padding: 8px 14px; border-right: 1px solid #bbb; min-height: 104px; }
     .desc-item { font-size: 11.5px; color: #1a5ce6; margin-bottom: 3px; }
     .desc-item strong { color: #111; }
@@ -269,57 +275,60 @@ const invoiceTemplate = ({ invoice, company }) => {
     .sig-image img { max-height: 42px; max-width: 120px; object-fit: contain; }
     .sig-svg { height: 40px; width: 100px; }
     .sig-auth { font-size: 11px; color: #333; margin-top: 2px; }
-    @media print { body { margin: 0; } a { color: #111; text-decoration: none; } .invoice { page-break-inside: avoid; } }
+    @media print { body { margin: 0; } a { color: #111; text-decoration: none; } .invoice { page-break-inside: auto; break-inside: auto; } .invoice-print-table thead { display: table-header-group; } }
   </style>
 </head>
 <body>
   <div class="invoice">
-    <div class="invoice-title">${escapeHtml(company.invoiceTitle || "Tax Invoice")}</div>
-    <div class="invoice-company">
-      <div class="invoice-logo-area${hasBrandLogo ? " brand-logo-area" : ""}">
-        ${logoMarkup(company)}
-        ${hasBrandLogo ? "" : `<div class="invoice-logo-text">KARMA</div>`}
-      </div>
-      <div class="invoice-company-info${hasBrandLogo ? " no-heading" : ""}">
-        <h1 class="invoice-business-name">${escapeHtml(company.businessName || "KARMA AUTOMOBILES")}</h1>
-        <p>${escapeHtml(companyAddress(company))}</p>
-        <div class="invoice-company-contact">
-          <span><strong>Phone:</strong> ${escapeHtml(company.phone || "")}</span>
-          <span><strong>Email:</strong> ${escapeHtml(company.email || "")}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="invoice-meta-grid">
-      <div class="invoice-bill-to">
-        <div class="bill-to-layout">
-          <div class="bill-customer-block">
-            <div class="invoice-section-label">Bill To:</div>
-            <div class="invoice-customer-name">${escapeHtml(invoice.customer?.name || "")}</div>
-            ${billAddressMarkup}
-            ${billPhoneMarkup}
-          </div>
-          ${billVehicleMarkup}
-        </div>
-      </div>
-      <div class="invoice-details-box">
-        <div class="invoice-details-layout">
-          <div class="invoice-detail-main">
-            <div class="invoice-section-label">Invoice Details:</div>
-            <div class="invoice-detail-row"><span>No:</span><span>${escapeHtml(invoice.invoiceCode || invoice.invoiceNumber)}</span></div>
-            <div class="invoice-detail-row"><span>Date:</span><span>${formatDateTime(invoice.invoiceDate)}</span></div>
-            ${deliveryMarkup}
-          </div>
-          <div class="invoice-mini-summary">
-            <div class="invoice-section-label compact">Quick Details:</div>
-            ${invoiceQuickRows}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <table>
+    <table class="invoice-print-table">
       <thead>
+        <tr class="invoice-page-header-row">
+          <th colspan="5" class="invoice-page-header-cell">
+            <div class="invoice-title">${escapeHtml(company.invoiceTitle || "Tax Invoice")}</div>
+            <div class="invoice-company">
+              <div class="invoice-logo-area${hasBrandLogo ? " brand-logo-area" : ""}">
+                ${logoMarkup(company)}
+                ${hasBrandLogo ? "" : `<div class="invoice-logo-text">KARMA</div>`}
+              </div>
+              <div class="invoice-company-info${hasBrandLogo ? " no-heading" : ""}">
+                <h1 class="invoice-business-name">${escapeHtml(company.businessName || "KARMA AUTOMOBILES")}</h1>
+                <p>${escapeHtml(companyAddress(company))}</p>
+                <div class="invoice-company-contact">
+                  <span><strong>Phone:</strong> ${escapeHtml(company.phone || "")}</span>
+                  <span><strong>Email:</strong> ${escapeHtml(company.email || "")}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="invoice-meta-grid">
+              <div class="invoice-bill-to">
+                <div class="bill-to-layout">
+                  <div class="bill-customer-block">
+                    <div class="invoice-section-label">Bill To:</div>
+                    <div class="invoice-customer-name">${escapeHtml(invoice.customer?.name || "")}</div>
+                    ${billAddressMarkup}
+                    ${billPhoneMarkup}
+                  </div>
+                  ${billVehicleMarkup}
+                </div>
+              </div>
+              <div class="invoice-details-box">
+                <div class="invoice-details-layout">
+                  <div class="invoice-detail-main">
+                    <div class="invoice-section-label">Invoice Details:</div>
+                    <div class="invoice-detail-row"><span>No:</span><span>${escapeHtml(invoice.invoiceCode || invoice.invoiceNumber)}</span></div>
+                    <div class="invoice-detail-row"><span>Date:</span><span>${formatDateTime(invoice.invoiceDate)}</span></div>
+                    ${deliveryMarkup}
+                  </div>
+                  <div class="invoice-mini-summary">
+                    <div class="invoice-section-label compact">Quick Details:</div>
+                    ${invoiceQuickRows}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </th>
+        </tr>
         <tr>
           <th style="width:34px;">#</th>
           <th>Item Name</th>
