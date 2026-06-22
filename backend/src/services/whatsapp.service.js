@@ -35,23 +35,27 @@ const getStatusCallbackUrl = () => {
   return isPublicHttpUrl(candidate) ? candidate : "";
 };
 
-const buildInvoiceMessage = ({ invoice, company, invoiceLink }) => `Greetings from ${company.businessName || "KARMA AUTOMOBILES"}
-
+const buildInvoiceMessage = ({ invoice, company, invoiceLink }) => {
+  const companyName = company?.businessName || "KARMA AUTOMOBILES";
+  const location = invoice?.mapsLink || company?.mapsLink || process.env.DEFAULT_GOOGLE_MAPS_LINK || "";
+  
+  return `Greetings from ${companyName}
 We are pleased to have you as a valuable customer. Please find the details of your transaction.
 
-Sale Invoice: ${invoice.invoiceCode}
+Sale Invoice : ${invoice.invoiceCode}
 Invoice Amount: ${formatCurrency(invoice.grandTotal)}
 Balance: ${formatCurrency(invoice.balanceAmount)}
 
-Location:
-${invoice.mapsLink || company.mapsLink || process.env.DEFAULT_GOOGLE_MAPS_LINK || ""}
-
-Invoice:
-${getInvoiceMessageLink(invoice, invoiceLink)}
-
 Thanks for doing business with us.
 Regards,
-${company.businessName || "KARMA AUTOMOBILES"}`;
+${companyName}
+
+Invoice Link:
+${getInvoiceMessageLink(invoice, invoiceLink)}
+
+Location:
+${location}`;
+};
 
 const buildTwilioMessagePayload = ({ invoice, company, invoiceLink }) => {
   const to = normalizeWhatsAppPhone(invoice.customer?.phone);
