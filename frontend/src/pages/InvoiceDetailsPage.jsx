@@ -49,9 +49,8 @@ export default function InvoiceDetailsPage() {
     const popup = openWhatsappPlaceholder();
     whatsappMutation.mutate(undefined, {
       onSuccess: (result) => {
-        const responseData = result?.data;
-        if (responseData?.mode === "link" && responseData?.whatsappUrl) {
-          redirectWhatsappWindow(popup, responseData.whatsappUrl);
+        if (result?.mode === "link" && result?.whatsappUrl) {
+          redirectWhatsappWindow(popup, result.whatsappUrl);
           toast.success("WhatsApp opened");
         } else {
           closeWhatsappPlaceholder(popup);
