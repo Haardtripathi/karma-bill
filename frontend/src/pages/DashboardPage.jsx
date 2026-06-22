@@ -15,6 +15,7 @@ import { formatDate } from "../utils/date.js";
 import { statusClass } from "../utils/invoiceStatus.js";
 import toast from "react-hot-toast";
 import { openPdfUrl } from "../utils/pdfWindow.js";
+import { openWhatsappPlaceholder, redirectWhatsappWindow, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
 
 export default function DashboardPage() {
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
@@ -29,11 +30,20 @@ export default function DashboardPage() {
   const activeRangeLabel = getDateRangeLabel(dateRange.startDate, dateRange.endDate);
 
   const sendWhatsapp = async (id) => {
+    const popup = openWhatsappPlaceholder();
     setLoadingInvoiceId(id);
     try {
-      await sendInvoiceWhatsapp(id);
-      toast.success("WhatsApp message sent");
+      const result = await sendInvoiceWhatsapp(id);
+      const responseData = result?.data;
+      if (responseData?.mode === "link" && responseData?.whatsappUrl) {
+        redirectWhatsappWindow(popup, responseData.whatsappUrl);
+        toast.success("WhatsApp opened");
+      } else {
+        closeWhatsappPlaceholder(popup);
+        toast.success("WhatsApp message sent");
+      }
     } catch (error) {
+      closeWhatsappPlaceholder(popup);
       toast.error(error.message);
     } finally {
       setLoadingInvoiceId(null);

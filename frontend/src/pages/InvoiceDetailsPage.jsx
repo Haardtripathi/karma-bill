@@ -15,6 +15,7 @@ import WhatsappSendButton from "../components/invoice/WhatsappSendButton.jsx";
 import { addInvoicePayment, cancelInvoice, generateInvoicePdf, getInvoicePrintData, invoicePdfUrl, sendInvoiceWhatsapp } from "../api/invoiceApi.js";
 import { toInputDate } from "../utils/date.js";
 import { closePdfPlaceholder, openPdfPlaceholder, openPdfUrl, showPdfUrl } from "../utils/pdfWindow.js";
+import { openWhatsappPlaceholder, redirectWhatsappWindow, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
 import { MessageCircle } from "lucide-react";
 
 export default function InvoiceDetailsPage() {
@@ -25,7 +26,7 @@ export default function InvoiceDetailsPage() {
   const { data, isLoading } = useQuery({ queryKey: ["invoice-print-data", id], queryFn: () => getInvoicePrintData(id) });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["invoice-print-data", id] });
   const pdfMutation = useMutation({ mutationFn: () => generateInvoicePdf(id) });
-  const whatsappMutation = useMutation({ mutationFn: () => sendInvoiceWhatsapp(id), onSuccess: () => { toast.success("WhatsApp message sent"); refresh(); }, onError: (error) => toast.error(error.message) });
+  const whatsappMutation = useMutation({ mutationFn: () => sendInvoiceWhatsapp(id) });
   const cancelMutation = useMutation({ mutationFn: () => cancelInvoice(id), onSuccess: () => { toast.success("Invoice cancelled"); refresh(); }, onError: (error) => toast.error(error.message) });
   const paymentMutation = useMutation({ mutationFn: () => addInvoicePayment({ id, payload: { ...payment, amount: Number(payment.amount || 0) } }), onSuccess: () => { toast.success("Payment added"); setPaymentOpen(false); refresh(); }, onError: (error) => toast.error(error.message) });
 
@@ -44,6 +45,27 @@ export default function InvoiceDetailsPage() {
     });
   };
 
+  const handleWhatsapp = () => {
+    const popup = openWhatsappPlaceholder();
+    whatsappMutation.mutate(undefined, {
+      onSuccess: (result) => {
+        const responseData = result?.data;
+        if (responseData?.mode === "link" && responseData?.whatsappUrl) {
+          redirectWhatsappWindow(popup, responseData.whatsappUrl);
+          toast.success("WhatsApp opened");
+        } else {
+          closeWhatsappPlaceholder(popup);
+          toast.success("WhatsApp message sent");
+        }
+        refresh();
+      },
+      onError: (error) => {
+        closeWhatsappPlaceholder(popup);
+        toast.error(error.message);
+      }
+    });
+  };
+
   if (isLoading) return <Loader label="Loading invoice..." />;
   const { invoice, company } = data || {};
   const isCancelled = invoice?.status === "cancelled";
@@ -54,7 +76,7 @@ export default function InvoiceDetailsPage() {
       <div className="panel actions-row no-print invoice-action-bar">
         <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(id))} />
         <PdfButton onClick={handlePdf} busy={pdfMutation.isPending} />
-        <WhatsappSendButton onClick={() => whatsappMutation.mutate()} busy={whatsappMutation.isPending} />
+        <WhatsappSendButton onClick={handleWhatsapp} busy={whatsappMutation.isPending} />
         {!isCancelled && (
           <>
             <Button variant="secondary" onClick={() => setPaymentOpen(true)}>Add payment</Button>
@@ -97,3 +119,4 @@ export default function InvoiceDetailsPage() {
     </section>
   );
 }
+

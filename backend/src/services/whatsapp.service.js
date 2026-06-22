@@ -35,6 +35,12 @@ const getStatusCallbackUrl = () => {
   return isPublicHttpUrl(candidate) ? candidate : "";
 };
 
+/** Returns "link" or "twilio". Defaults to "twilio" for backward compatibility. */
+const getWhatsappMode = () => {
+  const mode = (process.env.WHATSAPP_MODE || "").toLowerCase().trim();
+  return mode === "link" ? "link" : "twilio";
+};
+
 const buildInvoiceMessage = ({ invoice, company, invoiceLink }) => {
   const companyName = company?.businessName || "KARMA AUTOMOBILES";
   const location = invoice?.mapsLink || company?.mapsLink || process.env.DEFAULT_GOOGLE_MAPS_LINK || "";
@@ -55,6 +61,33 @@ ${getInvoiceMessageLink(invoice, invoiceLink)}
 
 Location:
 ${location}`;
+};
+
+/**
+ * Build a wa.me link URL that opens WhatsApp with the customer's number
+ * pre-filled and the invoice message template ready to send.
+ */
+const buildWhatsappLinkUrl = ({ invoice, company, invoiceLink }) => {
+  if (!invoice.customer?.phone) {
+    const error = new Error("Customer phone is required to send WhatsApp message");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Extract raw phone digits (without whatsapp: prefix) for wa.me URL
+  const normalized = normalizeWhatsAppPhone(invoice.customer.phone);
+  if (!normalized) {
+    const error = new Error("Customer phone is not a valid WhatsApp number");
+    error.statusCode = 400;
+    throw error;
+  }
+  // normalized is "whatsapp:+919876543210", extract just the digits after +
+  const phoneDigits = normalized.replace("whatsapp:+", "");
+
+  const message = buildInvoiceMessage({ invoice, company, invoiceLink });
+  const encodedMessage = encodeURIComponent(message);
+
+  return `https://wa.me/${phoneDigits}?text=${encodedMessage}`;
 };
 
 const buildTwilioMessagePayload = ({ invoice, company, invoiceLink }) => {
@@ -101,6 +134,13 @@ const sendInvoiceWhatsapp = async ({ invoice, company, invoiceLink }) => {
     throw error;
   }
 
+  // ── Link mode: return a wa.me URL instead of sending via Twilio ──
+  if (getWhatsappMode() === "link") {
+    const whatsappUrl = buildWhatsappLinkUrl({ invoice, company, invoiceLink });
+    return { mode: "link", whatsappUrl };
+  }
+
+  // ── Twilio mode: send via Twilio API ──
   if (!isTwilioConfigured()) {
     const error = new Error("Twilio credentials are missing. Add TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN in backend .env.");
     error.statusCode = 400;
@@ -120,9 +160,11 @@ const sendInvoiceWhatsapp = async ({ invoice, company, invoiceLink }) => {
 module.exports = {
   buildInvoiceMessage,
   buildTwilioMessagePayload,
+  buildWhatsappLinkUrl,
   getBackendInvoicePdfUrl,
   getInvoiceMessageLink,
   getStatusCallbackUrl,
+  getWhatsappMode,
   isPublicHttpUrl,
   sendInvoiceWhatsapp
 };
