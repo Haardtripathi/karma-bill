@@ -19,6 +19,7 @@ const errorMiddleware = require("./middlewares/error.middleware");
 const { successResponse } = require("./utils/apiResponse");
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 const configuredClientOrigins = (process.env.CLIENT_URL || "http://localhost:5173")

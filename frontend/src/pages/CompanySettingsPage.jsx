@@ -35,16 +35,61 @@ export default function CompanySettingsPage() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ["company-settings"], queryFn: getCompanySettings });
   const [form, setForm] = useState(defaultForm);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => { if (data) setForm((current) => ({ ...current, ...data })); }, [data]);
+  useEffect(() => {
+    if (data && !isInitialized) {
+      setForm(data);
+      setIsInitialized(true);
+    }
+  }, [data, isInitialized]);
 
   const saveMutation = useMutation({
     mutationFn: updateCompanySettings,
-    onSuccess: () => { toast.success("Company settings saved"); queryClient.invalidateQueries({ queryKey: ["company-settings"] }); }
+    onSuccess: (updatedData) => {
+      toast.success("Company settings saved");
+      queryClient.setQueryData(["company-settings"], updatedData);
+    }
   });
-  const logoMutation = useMutation({ mutationFn: uploadCompanyLogo, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["company-settings"] }) });
-  const signatureMutation = useMutation({ mutationFn: uploadCompanySignature, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["company-settings"] }) });
-  const paymentQrMutation = useMutation({ mutationFn: uploadCompanyPaymentQr, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["company-settings"] }) });
+
+  const logoMutation = useMutation({
+    mutationFn: uploadCompanyLogo,
+    onSuccess: (updatedData) => {
+      queryClient.setQueryData(["company-settings"], updatedData);
+      setForm((current) => ({
+        ...current,
+        logoUrl: updatedData.logoUrl,
+        logoPublicId: updatedData.logoPublicId
+      }));
+      toast.success("Logo uploaded successfully");
+    }
+  });
+
+  const signatureMutation = useMutation({
+    mutationFn: uploadCompanySignature,
+    onSuccess: (updatedData) => {
+      queryClient.setQueryData(["company-settings"], updatedData);
+      setForm((current) => ({
+        ...current,
+        signatureImageUrl: updatedData.signatureImageUrl,
+        signaturePublicId: updatedData.signaturePublicId
+      }));
+      toast.success("Signature uploaded successfully");
+    }
+  });
+
+  const paymentQrMutation = useMutation({
+    mutationFn: uploadCompanyPaymentQr,
+    onSuccess: (updatedData) => {
+      queryClient.setQueryData(["company-settings"], updatedData);
+      setForm((current) => ({
+        ...current,
+        paymentQrUrl: updatedData.paymentQrUrl,
+        paymentQrPublicId: updatedData.paymentQrPublicId
+      }));
+      toast.success("Payment QR uploaded successfully");
+    }
+  });
 
   if (isLoading) return <Loader label="Loading company settings..." />;
   const set = (patch) => setForm((current) => ({ ...current, ...patch }));

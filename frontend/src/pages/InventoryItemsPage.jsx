@@ -39,7 +39,7 @@ export default function InventoryItemsPage() {
               <tbody>{data.items.map((item) => (
                 <tr key={item._id}>
                   <td>{item.name}</td><td>{item.type}</td><td className="amount-cell">{formatCurrency(item.defaultPrice)}</td><td>{item.stockQty}</td><td>{item.imageUrl ? <ImagePreview compact src={item.imageUrl} alt={`${item.name} image`} /> : "-"}</td>
-                  <td className="table-actions"><Link className="btn btn-secondary" to={`/inventory-items/${item._id}/edit`}>Edit</Link><Button variant="danger" onClick={() => deleteMutation.mutate(item._id)}>Delete</Button></td>
+                  <td className="table-actions"><Link className="btn btn-secondary" to={`/inventory-items/${item._id}/edit`}>Edit</Link><Button variant="danger" onClick={() => deleteMutation.mutate(item._id)} disabled={deleteMutation.isPending && deleteMutation.variables === item._id}>Delete</Button></td>
                 </tr>
               ))}</tbody>
             </table>

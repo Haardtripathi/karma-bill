@@ -78,6 +78,9 @@ const buildTwilioMessagePayload = ({ invoice, company, invoiceLink }) => {
     body: buildInvoiceMessage({ invoice, company, invoiceLink })
   };
 
+  console.log("TWILIO DEBUG - FROM:", from);
+  console.log("TWILIO DEBUG - TO:", to);
+
   const mediaPdfUrl = getBackendInvoicePdfUrl(invoice) || (isPublicHttpUrl(invoice.pdfUrl) ? invoice.pdfUrl : "");
   if (process.env.SEND_PDF_AS_MEDIA === "true" && mediaPdfUrl) {
     payload.mediaUrl = [mediaPdfUrl];

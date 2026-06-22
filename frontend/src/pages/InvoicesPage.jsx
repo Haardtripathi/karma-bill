@@ -81,10 +81,10 @@ export default function InvoicesPage() {
                     <Link className="btn btn-secondary" to={`/invoices/${invoice._id}`}>View</Link>
                     {invoice.status !== "cancelled" && <Link className="btn btn-secondary" to={`/invoices/${invoice._id}/edit`}>Edit</Link>}
                     <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(invoice._id))} />
-                    <PdfButton onClick={() => handlePdf(invoice._id)} busy={pdfMutation.isPending} />
-                    <WhatsappSendButton onClick={() => whatsappMutation.mutate(invoice._id)} busy={whatsappMutation.isPending} />
-                    {invoice.status !== "cancelled" && <Button variant="danger" onClick={() => cancelMutation.mutate(invoice._id)}>Cancel</Button>}
-                    <Button variant="ghost" onClick={() => deleteMutation.mutate(invoice._id)}>Delete</Button>
+                    <PdfButton onClick={() => handlePdf(invoice._id)} busy={pdfMutation.isPending && pdfMutation.variables === invoice._id} />
+                    <WhatsappSendButton onClick={() => whatsappMutation.mutate(invoice._id)} busy={whatsappMutation.isPending && whatsappMutation.variables === invoice._id} />
+                    {invoice.status !== "cancelled" && <Button variant="danger" onClick={() => cancelMutation.mutate(invoice._id)} disabled={cancelMutation.isPending && cancelMutation.variables === invoice._id}>Cancel</Button>}
+                    <Button variant="ghost" onClick={() => deleteMutation.mutate(invoice._id)} disabled={deleteMutation.isPending && deleteMutation.variables === invoice._id}>Delete</Button>
                   </td>
                 </tr>
               ))}</tbody>

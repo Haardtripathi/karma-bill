@@ -18,6 +18,7 @@ import { openPdfUrl } from "../utils/pdfWindow.js";
 
 export default function DashboardPage() {
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
+  const [loadingInvoiceId, setLoadingInvoiceId] = useState(null);
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-summary", dateRange.startDate, dateRange.endDate],
     queryFn: () => getDashboardSummary(dateRange)
@@ -28,11 +29,14 @@ export default function DashboardPage() {
   const activeRangeLabel = getDateRangeLabel(dateRange.startDate, dateRange.endDate);
 
   const sendWhatsapp = async (id) => {
+    setLoadingInvoiceId(id);
     try {
       await sendInvoiceWhatsapp(id);
       toast.success("WhatsApp message sent");
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setLoadingInvoiceId(null);
     }
   };
 
@@ -80,7 +84,7 @@ export default function DashboardPage() {
                     <td className="table-actions">
                       <Link className="btn btn-secondary" to={`/invoices/${invoice._id}`}>View</Link>
                       <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(invoice._id))} />
-                      <WhatsappSendButton onClick={() => sendWhatsapp(invoice._id)} />
+                      <WhatsappSendButton onClick={() => sendWhatsapp(invoice._id)} busy={loadingInvoiceId === invoice._id} />
                     </td>
                   </tr>
                 ))}

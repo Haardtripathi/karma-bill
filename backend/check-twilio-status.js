@@ -8,7 +8,7 @@ const client = twilio(
 
 async function checkMessage() {
   try {
-    const message = await client.messages('SMf4bc1dccc052fc7c95936956c4bff6d9').fetch();
+    const message = await client.messages('MM4d06643c0cc73b0890c81854ebc0808c').fetch();
     console.log("Message Status:", message.status);
     console.log("Error Code:", message.errorCode);
     console.log("Error Message:", message.errorMessage);
