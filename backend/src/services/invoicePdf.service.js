@@ -80,7 +80,7 @@ const generatePdfBuffer = async (invoice, company) => {
     const browser = await getSharedBrowser();
     page = await browser.newPage();
     try {
-      await page.setContent(html, { waitUntil: "networkidle2", timeout: 60000 });
+      await page.setContent(html, { waitUntil: "load", timeout: 7000 });
     } catch (err) {
       // Fallback to minimal PDF if content fails to load within timeout
       console.warn('Page setContent timeout or error, falling back to minimal PDF:', err.message);
@@ -104,7 +104,27 @@ const generateAndUploadInvoicePdf = async (invoice, company) => {
   const buffer = await generatePdfBuffer(invoice, company);
   const filename = `${invoice.invoiceCode}.pdf`;
   const uploaded = await uploadRaw(buffer, "invoices", filename);
-  return { buffer, ...uploaded };
+  
+  let imageUrl = "";
+  if (process.env.CLOUDINARY_API_KEY) {
+    try {
+      const { cloudinary } = require("../config/cloudinary");
+      imageUrl = await new Promise((resolve) => {
+        const stream = cloudinary.uploader.upload_stream({
+          folder: `${process.env.CLOUDINARY_ROOT_FOLDER || "karma-automobiles"}/invoices-img`,
+          resource_type: "image",
+          format: "png",
+          public_id: filename.replace(".pdf", "")
+        }, (err, res) => {
+          if (!err && res) resolve(res.secure_url);
+          else resolve("");
+        });
+        require("stream").Readable.from(buffer).pipe(stream);
+      });
+    } catch(e) {}
+  }
+  
+  return { buffer, ...uploaded, imageUrl };
 };
 
 module.exports = {

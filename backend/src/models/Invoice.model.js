@@ -77,6 +77,7 @@ const invoiceSchema = new mongoose.Schema(
     terms: { type: String, default: "Thank you for doing business with us." },
     mapsLink: { type: String, default: "" },
     pdfUrl: { type: String, default: "" },
+    pdfImageUrl: { type: String, default: "" },
     pdfPublicId: { type: String, default: "" },
     lastPdfGeneratedAt: { type: Date },
     whatsapp: {

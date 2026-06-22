@@ -9,7 +9,14 @@ const { getNextInvoiceNumber, makeInvoiceCode } = require("../services/invoiceNu
 const { generatePdfBuffer, generateAndUploadInvoicePdf } = require("../services/invoicePdf.service");
 const { sendInvoiceWhatsapp } = require("../services/whatsapp.service");
 
+const mongoose = require("mongoose");
+
 const getInvoiceOrThrow = async (id) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const error = new Error("Invalid invoice ID format");
+    error.statusCode = 400;
+    throw error;
+  }
   const invoice = await Invoice.findById(id);
   if (!invoice || invoice.isDeleted) {
     const error = new Error("Invoice not found");
@@ -319,6 +326,7 @@ const generatePdf = asyncHandler(async (req, res) => {
   const company = await CompanySetting.getDefaultSetting();
   const generated = await generateAndUploadInvoicePdf(invoice.toObject(), company.toObject());
   invoice.pdfUrl = generated.url;
+  invoice.pdfImageUrl = generated.imageUrl || "";
   invoice.pdfPublicId = generated.publicId;
   invoice.lastPdfGeneratedAt = new Date();
   await invoice.save();
@@ -355,6 +363,7 @@ const sendInvoiceWhatsappController = asyncHandler(async (req, res) => {
     try {
       const generated = await generateAndUploadInvoicePdf(invoice.toObject(), company.toObject());
       invoice.pdfUrl = generated.url;
+      invoice.pdfImageUrl = generated.imageUrl || "";
       invoice.pdfPublicId = generated.publicId;
       invoice.lastPdfGeneratedAt = new Date();
       await invoice.save();
