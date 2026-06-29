@@ -17,6 +17,9 @@ import { toInputDate } from "../utils/date.js";
 import { closePdfPlaceholder, openPdfPlaceholder, openPdfUrl, showPdfUrl } from "../utils/pdfWindow.js";
 import { openWhatsappPlaceholder, redirectWhatsappWindow, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
 import { MessageCircle } from "lucide-react";
+import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 export default function InvoiceDetailsPage() {
   const { id } = useParams();
@@ -60,6 +63,38 @@ export default function InvoiceDetailsPage() {
               const blob = await pdfResponse.blob();
               
               const fileName = invoice?.invoiceCode ? `Invoice_${invoice.invoiceCode}.pdf` : "Invoice.pdf";
+              
+              // ── Capacitor Native Share ──
+              if (Capacitor.isNativePlatform()) {
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = async () => {
+                  try {
+                    const base64data = reader.result;
+                    const savedFile = await Filesystem.writeFile({
+                      path: fileName,
+                      data: base64data,
+                      directory: Directory.Cache
+                    });
+                    
+                    closeWhatsappPlaceholder(popup);
+                    await Share.share({
+                      title: fileName,
+                      text: text,
+                      url: savedFile.uri,
+                    });
+                    toast.success("Shared successfully");
+                    refresh();
+                  } catch (e) {
+                    console.error("Native share failed", e);
+                    closeWhatsappPlaceholder(popup);
+                    toast.error("Share failed");
+                  }
+                };
+                return;
+              }
+
+              // ── Web Share API ──
               const file = new File([blob], fileName, { type: "application/pdf" });
               
               if (navigator.canShare({ files: [file] })) {
