@@ -23,7 +23,7 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <HashRouter>
             <AppRoutes />
-            <Toaster position="top-right" />
+            <Toaster position="top-center" toastOptions={{ duration: 2600 }} />
           </HashRouter>
         </QueryClientProvider>
       </ThemeProvider>

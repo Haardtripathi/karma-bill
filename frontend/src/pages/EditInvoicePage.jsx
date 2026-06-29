@@ -151,7 +151,7 @@ export default function EditInvoicePage() {
       <div className="page-header"><div><h2>Edit Invoice {invoice?.invoiceCode}</h2><p>Invoice number stays unchanged.</p></div><Link className="btn btn-secondary" to={"/invoices/" + id}>Back</Link></div>
       <div className="panel page">
         <CustomerPicker customers={customers} selectedCustomerId={selectedCustomerId} quickCustomer={quickCustomer} onSelect={handleCustomerSelect} onQuickChange={(patch) => setQuickCustomer((current) => ({ ...current, ...patch }))} />
-        <div className="form-grid invoice-date-grid" style={{ margin: "16px 0" }}>
+        <div className="form-grid invoice-date-grid">
           <DateTimeFields dateLabel="Invoice date" dateValue={form.invoiceDate} timeValue={form.invoiceTime} onDateChange={(invoiceDate) => setForm((current) => ({ ...current, invoiceDate }))} onTimeChange={(invoiceTime) => setForm((current) => ({ ...current, invoiceTime }))} />
           <DateTimeFields dateLabel="Delivery date" dateValue={form.deliveryDate} timeValue={form.deliveryTime} onDateChange={(deliveryDate) => setForm((current) => ({ ...current, deliveryDate }))} onTimeChange={(deliveryTime) => setForm((current) => ({ ...current, deliveryTime }))} />
           <Input label="Discount" type="number" min="0" value={form.discountAmount} onChange={(event) => setForm((current) => ({ ...current, discountAmount: event.target.value }))} />
@@ -167,7 +167,7 @@ export default function EditInvoicePage() {
             <InvoiceTotalsBox subTotal={subTotal} discountAmount={form.discountAmount} receivedAmount={form.receivedAmount} />
           </div>
         </div>
-        <div className="form-actions right-actions" style={{ marginTop: "20px" }}><Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>Save changes</Button></div>
+        <div className="form-actions right-actions invoice-save-actions"><Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>Save changes</Button></div>
       </div>
     </section>
   );

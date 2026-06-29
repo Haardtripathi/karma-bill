@@ -38,8 +38,12 @@ export default function InventoryItemsPage() {
               <thead><tr><th>Name</th><th>Type</th><th className="amount-heading">Default price</th><th>Stock</th><th>Image</th><th>Actions</th></tr></thead>
               <tbody>{data.items.map((item) => (
                 <tr key={item._id}>
-                  <td>{item.name}</td><td>{item.type}</td><td className="amount-cell">{formatCurrency(item.defaultPrice)}</td><td>{item.stockQty}</td><td>{item.imageUrl ? <ImagePreview compact src={item.imageUrl} alt={`${item.name} image`} /> : "-"}</td>
-                  <td className="table-actions"><Link className="btn btn-secondary" to={`/inventory-items/${item._id}/edit`}>Edit</Link><Button variant="danger" onClick={() => deleteMutation.mutate(item._id)} disabled={deleteMutation.isPending && deleteMutation.variables === item._id}>Delete</Button></td>
+                  <td data-label="Name">{item.name}</td>
+                  <td data-label="Type">{item.type}</td>
+                  <td className="amount-cell" data-label="Default price">{formatCurrency(item.defaultPrice)}</td>
+                  <td data-label="Stock">{item.stockQty}</td>
+                  <td data-label="Image">{item.imageUrl ? <ImagePreview compact src={item.imageUrl} alt={`${item.name} image`} /> : "-"}</td>
+                  <td className="table-actions" data-label="Actions"><Link className="btn btn-secondary" to={`/inventory-items/${item._id}/edit`}>Edit</Link><Button variant="danger" onClick={() => deleteMutation.mutate(item._id)} disabled={deleteMutation.isPending && deleteMutation.variables === item._id}>Delete</Button></td>
                 </tr>
               ))}</tbody>
             </table>

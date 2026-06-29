@@ -91,19 +91,25 @@ export default function InvoicesPage() {
               <thead><tr><th>Invoice no</th><th>Date</th><th>Customer</th><th>Phone</th><th>Vehicle no</th><th className="amount-heading">Total</th><th className="amount-heading">Received</th><th className="amount-heading">Balance</th><th>Status</th><th>WhatsApp</th><th>Actions</th></tr></thead>
               <tbody>{data.items.map((invoice) => (
                 <tr key={invoice._id}>
-                  <td><Link to={`/invoices/${invoice._id}`}>{invoice.invoiceCode}</Link></td>
-                  <td>{formatDate(invoice.invoiceDate)}</td><td>{invoice.customer?.customerId ? <Link to={`/customers/${invoice.customer.customerId}`}>{invoice.customer.name}</Link> : invoice.customer?.name}</td><td>{invoice.customer?.phone}</td><td>{invoice.customer?.vehicleNumber}</td>
-                  <td className="amount-cell">{formatCurrency(invoice.grandTotal)}</td><td className="amount-cell amount-positive">{formatCurrency(invoice.receivedAmount)}</td><td className="amount-cell amount-balance">{formatCurrency(invoice.balanceAmount)}</td><td><span className={statusClass(invoice.status)}>{invoice.status}</span></td>
-                  <td>
+                  <td data-label="Invoice"><Link to={`/invoices/${invoice._id}`}>{invoice.invoiceCode}</Link></td>
+                  <td data-label="Date">{formatDate(invoice.invoiceDate)}</td>
+                  <td data-label="Customer">{invoice.customer?.customerId ? <Link to={`/customers/${invoice.customer.customerId}`}>{invoice.customer.name}</Link> : invoice.customer?.name}</td>
+                  <td data-label="Phone">{invoice.customer?.phone}</td>
+                  <td data-label="Vehicle">{invoice.customer?.vehicleNumber}</td>
+                  <td className="amount-cell" data-label="Total">{formatCurrency(invoice.grandTotal)}</td>
+                  <td className="amount-cell amount-positive" data-label="Received">{formatCurrency(invoice.receivedAmount)}</td>
+                  <td className="amount-cell amount-balance" data-label="Balance">{formatCurrency(invoice.balanceAmount)}</td>
+                  <td data-label="Status"><span className={statusClass(invoice.status)}>{invoice.status}</span></td>
+                  <td data-label="WhatsApp">
                     {invoice.whatsapp?.sentCount > 0 ? (
                       <span className={`status-badge whatsapp-badge-${invoice.whatsapp.lastStatus || "queued"}`}>
                         {invoice.whatsapp.lastStatus || "queued"}
                       </span>
                     ) : (
-                      <span className="status-badge" style={{ color: "var(--muted)", background: "var(--soft)", borderColor: "var(--line)" }}>Unsent</span>
+                      <span className="status-badge status-muted">Unsent</span>
                     )}
                   </td>
-                  <td className="table-actions">
+                  <td className="table-actions" data-label="Actions">
                     <Link className="btn btn-secondary" to={`/invoices/${invoice._id}`}>View</Link>
                     {invoice.status !== "cancelled" && <Link className="btn btn-secondary" to={`/invoices/${invoice._id}/edit`}>Edit</Link>}
                     <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(invoice._id))} />

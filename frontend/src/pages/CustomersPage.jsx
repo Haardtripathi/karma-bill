@@ -32,8 +32,12 @@ export default function CustomersPage() {
               <thead><tr><th>Name</th><th>Phone</th><th>Vehicle number</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody>{data.items.map((customer) => (
                 <tr key={customer._id}>
-                  <td><Link to={`/customers/${customer._id}`}>{customer.name}</Link></td><td>{customer.phone}</td><td>{customer.vehicleNumber}</td><td>{customer.address}</td><td>{customer.isActive ? "Active" : "Inactive"}</td>
-                  <td className="table-actions"><Link className="btn btn-secondary" to={`/customers/${customer._id}`}>View</Link><Link className="btn btn-secondary" to={`/customers/${customer._id}/edit`}>Edit</Link><Button variant="danger" onClick={() => deleteMutation.mutate(customer._id)} disabled={deleteMutation.isPending && deleteMutation.variables === customer._id}>Delete</Button></td>
+                  <td data-label="Name"><Link to={`/customers/${customer._id}`}>{customer.name}</Link></td>
+                  <td data-label="Phone">{customer.phone}</td>
+                  <td data-label="Vehicle">{customer.vehicleNumber}</td>
+                  <td data-label="Address">{customer.address}</td>
+                  <td data-label="Status">{customer.isActive ? "Active" : "Inactive"}</td>
+                  <td className="table-actions" data-label="Actions"><Link className="btn btn-secondary" to={`/customers/${customer._id}`}>View</Link><Link className="btn btn-secondary" to={`/customers/${customer._id}/edit`}>Edit</Link><Button variant="danger" onClick={() => deleteMutation.mutate(customer._id)} disabled={deleteMutation.isPending && deleteMutation.variables === customer._id}>Delete</Button></td>
                 </tr>
               ))}</tbody>
             </table>

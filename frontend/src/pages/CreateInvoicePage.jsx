@@ -113,7 +113,7 @@ export default function CreateInvoicePage() {
       <div className="page-header"><div><h2>Create Invoice</h2><p>Select customer, add service/parts, collect payment and save.</p></div><Link className="btn btn-secondary" to="/invoices">Back</Link></div>
       <div className="panel page">
         <CustomerPicker customers={customers} selectedCustomerId={selectedCustomerId} quickCustomer={quickCustomer} onSelect={handleCustomerSelect} onQuickChange={(patch) => setQuickCustomer((current) => ({ ...current, ...patch }))} />
-        <div className="form-grid invoice-date-grid" style={{ margin: "16px 0" }}>
+        <div className="form-grid invoice-date-grid">
           <DateTimeFields dateLabel="Invoice date" dateValue={invoiceDate} timeValue={invoiceTime} onDateChange={setInvoiceDate} onTimeChange={setInvoiceTime} />
           <DateTimeFields dateLabel="Delivery date" dateValue={deliveryDate} timeValue={deliveryTime} onDateChange={setDeliveryDate} onTimeChange={setDeliveryTime} />
           <Input label="Discount" type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} />
@@ -129,7 +129,7 @@ export default function CreateInvoicePage() {
             <InvoiceTotalsBox subTotal={subTotal} discountAmount={discountAmount} receivedAmount={receivedAmount} />
           </div>
         </div>
-        <div className="form-actions right-actions" style={{ marginTop: "20px" }}>
+        <div className="form-actions right-actions invoice-save-actions">
           <Button variant="secondary" onClick={() => save("draft")} disabled={createMutation.isPending}>Save draft</Button>
           <Button onClick={() => save("unpaid")} disabled={createMutation.isPending}>Save invoice</Button>
         </div>

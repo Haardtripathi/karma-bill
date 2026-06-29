@@ -84,14 +84,14 @@ export default function DashboardPage() {
               <tbody>
                 {recent.map((invoice) => (
                   <tr key={invoice._id}>
-                    <td><Link to={`/invoices/${invoice._id}`}>{invoice.invoiceCode}</Link></td>
-                    <td>{formatDate(invoice.invoiceDate)}</td>
-                    <td>{invoice.customer?.customerId ? <Link to={`/customers/${invoice.customer.customerId}`}>{invoice.customer.name}</Link> : invoice.customer?.name}</td>
-                    <td className="amount-cell">{formatCurrency(invoice.grandTotal)}</td>
-                    <td className="amount-cell amount-positive">{formatCurrency(invoice.receivedAmount)}</td>
-                    <td className="amount-cell amount-balance">{formatCurrency(invoice.balanceAmount)}</td>
-                    <td><span className={statusClass(invoice.status)}>{invoice.status}</span></td>
-                    <td className="table-actions">
+                    <td data-label="Invoice"><Link to={`/invoices/${invoice._id}`}>{invoice.invoiceCode}</Link></td>
+                    <td data-label="Date">{formatDate(invoice.invoiceDate)}</td>
+                    <td data-label="Customer">{invoice.customer?.customerId ? <Link to={`/customers/${invoice.customer.customerId}`}>{invoice.customer.name}</Link> : invoice.customer?.name}</td>
+                    <td className="amount-cell" data-label="Amount">{formatCurrency(invoice.grandTotal)}</td>
+                    <td className="amount-cell amount-positive" data-label="Received">{formatCurrency(invoice.receivedAmount)}</td>
+                    <td className="amount-cell amount-balance" data-label="Balance">{formatCurrency(invoice.balanceAmount)}</td>
+                    <td data-label="Status"><span className={statusClass(invoice.status)}>{invoice.status}</span></td>
+                    <td className="table-actions" data-label="Actions">
                       <Link className="btn btn-secondary" to={`/invoices/${invoice._id}`}>View</Link>
                       <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(invoice._id))} />
                       <WhatsappSendButton onClick={() => sendWhatsapp(invoice)} busy={loadingInvoiceId === invoice._id} />

@@ -1,4 +1,4 @@
-.table-scroll { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: none; }
+.table-scroll, .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: none; }
 .data-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; min-width: 760px; }
 .data-table th, .data-table td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: middle; }
 .data-table th { color: #334155; font-size: 11px; text-transform: uppercase; background: #f8fafc; letter-spacing: 0; position: sticky; top: 0; z-index: 1; font-weight: 750; }
@@ -34,9 +34,77 @@
 .line-item-actions { width: 44px; text-align: center; }
 .table-actions { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; min-width: 190px; }
 .table-actions .btn { min-height: 28px; padding: 4px 8px; font-size: 11px; }
+.empty-table-cell { text-align: center; padding: 16px !important; color: var(--muted); }
 @media (max-width: 720px) {
-  .table-scroll { margin-left: -1px; margin-right: -1px; }
+  .table-scroll, .table-responsive { margin-left: -1px; margin-right: -1px; }
   .data-table th, .data-table td { padding: 8px; }
+  .table-scroll:not(.line-items-scroll), .table-responsive {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .data-table:not(.line-items-table) {
+    display: block;
+    min-width: 0;
+    background: transparent;
+    border-spacing: 0 10px;
+    border-collapse: separate;
+  }
+  .data-table:not(.line-items-table) thead { display: none; }
+  .data-table:not(.line-items-table) tbody,
+  .data-table:not(.line-items-table) tr,
+  .data-table:not(.line-items-table) td { display: block; width: 100%; }
+  .data-table:not(.line-items-table) tbody { display: grid; gap: 10px; }
+  .data-table:not(.line-items-table) tr {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .data-table:not(.line-items-table) tr:hover td { background: #fff; }
+  .data-table:not(.line-items-table) td {
+    display: grid;
+    grid-template-columns: minmax(86px, 34%) minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    min-height: 42px;
+    border-bottom: 1px solid var(--line);
+    padding: 9px 10px;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+  .data-table:not(.line-items-table) td:last-child { border-bottom: 0; }
+  .data-table:not(.line-items-table) td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+  .data-table:not(.line-items-table) td[data-label=""]::before { display: none; }
+  .data-table:not(.line-items-table) td.empty-table-cell {
+    display: block;
+    text-align: center;
+    padding: 16px !important;
+  }
+  .data-table:not(.line-items-table) td.empty-table-cell::before { display: none; }
+  .data-table:not(.line-items-table) td.amount-cell { text-align: right; font-size: 13px; }
+  .data-table:not(.line-items-table) td.table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: flex-end;
+    gap: 7px;
+    min-width: 0;
+    background: #f8fafc;
+  }
+  .data-table:not(.line-items-table) td.table-actions::before {
+    width: 100%;
+    flex: 0 0 100%;
+  }
+  .table-actions .btn { min-height: 40px; padding: 8px 10px; font-size: 12px; }
   .line-items-scroll { border: 0; background: transparent; overflow: visible; box-shadow: none; }
   .line-items-table { min-width: 0; border-collapse: separate; border-spacing: 0 10px; }
   .line-items-table thead { display: none; }
@@ -49,4 +117,6 @@
   .line-item-image-cell { width: 100%; }
   .line-item-actions { text-align: left; }
   .selected-item-summary { align-items: flex-start; flex-direction: column; }
+  .image-cell-row { align-items: stretch; flex-direction: column; }
+  .image-cell-row .field { width: 100%; }
 }

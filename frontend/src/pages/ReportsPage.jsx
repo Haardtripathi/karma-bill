@@ -8,6 +8,7 @@ import SearchBar from "../components/common/SearchBar.jsx";
 import DateRangeFilter, { getDateRangeLabel } from "../components/common/DateRangeFilter.jsx";
 import useDebounce from "../hooks/useDebounce.js";
 import { getSalesReport, getCustomerBalancesReport, getItemSalesReport } from "../api/reportApi.js";
+import { statusClass } from "../utils/invoiceStatus.js";
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState("sales");
@@ -44,20 +45,20 @@ export default function ReportsPage() {
         </div>
       </div>
       
-      <div className="panel" style={{ marginBottom: "1rem" }}>
+      <div className="panel report-filter-panel">
         <div className="toolbar-row">
           <SearchBar value={search} onChange={setSearch} placeholder={activeTab === "sales" ? "Search invoices or customers..." : activeTab === "customers" ? "Search customers..." : "Search items..."} />
           <DateRangeFilter label="Report range" startDate={fromDate} endDate={toDate} onChange={({ startDate, endDate }) => { setFromDate(startDate); setToDate(endDate); }} />
         </div>
       </div>
 
-      <div className="tabs">
+      <div className="tabs report-tabs">
         <button className={`btn ${activeTab === "sales" ? "btn-primary" : "btn-secondary"}`} onClick={() => { setActiveTab("sales"); setSearch(""); }}>Sales Report</button>
-        <button className={`btn ${activeTab === "customers" ? "btn-primary" : "btn-secondary"}`} onClick={() => { setActiveTab("customers"); setSearch(""); }} style={{ marginLeft: "10px" }}>Customer Balances</button>
-        <button className={`btn ${activeTab === "items" ? "btn-primary" : "btn-secondary"}`} onClick={() => { setActiveTab("items"); setSearch(""); }} style={{ marginLeft: "10px" }}>Item Sales</button>
+        <button className={`btn ${activeTab === "customers" ? "btn-primary" : "btn-secondary"}`} onClick={() => { setActiveTab("customers"); setSearch(""); }}>Customer Balances</button>
+        <button className={`btn ${activeTab === "items" ? "btn-primary" : "btn-secondary"}`} onClick={() => { setActiveTab("items"); setSearch(""); }}>Item Sales</button>
       </div>
 
-      <div className="panel" style={{ marginTop: "1.5rem" }}>
+      <div className="panel report-results-panel">
         {activeTab === "sales" && (
           <div>
             <div className="report-section-title"><h3>Sales Overview</h3><span>{activeRangeLabel}</span></div>
@@ -77,7 +78,7 @@ export default function ReportsPage() {
                     <div className="stat-label">Outstanding Balance</div>
                   </div>
                 </div>
-                <h4 style={{ marginTop: "2rem", marginBottom: "1rem" }}>Recent Invoices</h4>
+                <h4 className="report-subtitle">Recent Invoices</h4>
                 <div className="table-responsive">
                   <table className="data-table">
                     <thead>
@@ -86,16 +87,16 @@ export default function ReportsPage() {
                     <tbody>
                       {salesQuery.data?.data?.invoices?.slice(0, 50).map(inv => (
                         <tr key={inv._id}>
-                          <td>{formatDate(inv.invoiceDate)}</td>
-                          <td><Link to={`/invoices/${inv._id}`}>{inv.invoiceCode}</Link></td>
-                          <td>{inv.customer?.customerId ? <Link to={`/customers/${inv.customer.customerId}`}>{inv.customer.name}</Link> : inv.customer?.name}</td>
-                          <td>{formatCurrency(inv.grandTotal)}</td>
-                          <td>{formatCurrency(inv.receivedAmount)}</td>
-                          <td>{inv.status}</td>
+                          <td data-label="Date">{formatDate(inv.invoiceDate)}</td>
+                          <td data-label="Invoice"><Link to={`/invoices/${inv._id}`}>{inv.invoiceCode}</Link></td>
+                          <td data-label="Customer">{inv.customer?.customerId ? <Link to={`/customers/${inv.customer.customerId}`}>{inv.customer.name}</Link> : inv.customer?.name}</td>
+                          <td className="amount-cell" data-label="Grand total">{formatCurrency(inv.grandTotal)}</td>
+                          <td className="amount-cell amount-positive" data-label="Received">{formatCurrency(inv.receivedAmount)}</td>
+                          <td data-label="Status"><span className={statusClass(inv.status)}>{inv.status}</span></td>
                         </tr>
                       ))}
                       {(!salesQuery.data?.data?.invoices || salesQuery.data.data.invoices.length === 0) && (
-                        <tr><td colSpan="6" style={{ textAlign: "center", padding: "1rem" }}>No invoices found.</td></tr>
+                        <tr><td className="empty-table-cell" colSpan="6">No invoices found.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -117,15 +118,15 @@ export default function ReportsPage() {
                   <tbody>
                     {customerQuery.data?.data?.map(c => (
                       <tr key={c.customerId}>
-                        <td><Link to={`/customers/${c.customerId}`}>{c.name}</Link></td>
-                        <td>{c.phone}</td>
-                        <td>{formatCurrency(c.totalBilled)}</td>
-                        <td>{formatCurrency(c.totalPaid)}</td>
-                        <td><strong>{formatCurrency(c.outstandingBalance)}</strong></td>
+                        <td data-label="Name"><Link to={`/customers/${c.customerId}`}>{c.name}</Link></td>
+                        <td data-label="Phone">{c.phone}</td>
+                        <td className="amount-cell" data-label="Total billed">{formatCurrency(c.totalBilled)}</td>
+                        <td className="amount-cell amount-positive" data-label="Total paid">{formatCurrency(c.totalPaid)}</td>
+                        <td className="amount-cell amount-balance" data-label="Outstanding"><strong>{formatCurrency(c.outstandingBalance)}</strong></td>
                       </tr>
                     ))}
                     {(!customerQuery.data?.data || customerQuery.data.data.length === 0) && (
-                      <tr><td colSpan="5" style={{ textAlign: "center", padding: "1rem" }}>No customers with outstanding balances.</td></tr>
+                      <tr><td className="empty-table-cell" colSpan="5">No customers with outstanding balances.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -146,13 +147,13 @@ export default function ReportsPage() {
                   <tbody>
                     {itemsQuery.data?.data?.map(item => (
                       <tr key={item.itemId || item.itemName}>
-                        <td>{item.itemName}</td>
-                        <td>{item.quantitySold}</td>
-                        <td>{formatCurrency(item.totalRevenue)}</td>
+                        <td data-label="Item">{item.itemName}</td>
+                        <td data-label="Quantity sold">{item.quantitySold}</td>
+                        <td className="amount-cell" data-label="Revenue">{formatCurrency(item.totalRevenue)}</td>
                       </tr>
                     ))}
                     {(!itemsQuery.data?.data || itemsQuery.data.data.length === 0) && (
-                      <tr><td colSpan="3" style={{ textAlign: "center", padding: "1rem" }}>No item sales recorded.</td></tr>
+                      <tr><td className="empty-table-cell" colSpan="3">No item sales recorded.</td></tr>
                     )}
                   </tbody>
                 </table>

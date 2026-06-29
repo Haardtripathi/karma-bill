@@ -117,6 +117,51 @@
   .form-actions .btn, .actions-row .btn, .actions-row .file-upload, .file-upload-group .file-upload { flex: 1 1 auto; }
   .file-upload-group { width: 100%; }
   .search-bar { width: 100%; min-width: 0; }
+  .field .MuiOutlinedInput-root,
+  .item-combobox .MuiAutocomplete-inputRoot,
+  .customer-combobox .MuiAutocomplete-inputRoot,
+  .date-range-trigger.MuiButton-root,
+  .search-bar {
+    min-height: var(--touch-target);
+    border-radius: 8px;
+  }
+  .field .MuiOutlinedInput-input,
+  .field .MuiSelect-select,
+  .item-combobox .MuiAutocomplete-inputRoot .MuiAutocomplete-input {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 14px;
+  }
+  .field .MuiInputLabel-root { font-size: 13px; }
+  .field textarea.MuiOutlinedInput-input { min-height: 76px; }
+  .btn, .btn.MuiButton-root, .file-upload {
+    min-height: var(--touch-target);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+  .btn-sm, .btn-sm.MuiButton-root { min-height: 38px; padding: 8px 10px; font-size: 12px; }
+  .btn-icon, .btn-icon.MuiButton-root { width: var(--touch-target); min-width: var(--touch-target); height: var(--touch-target); padding: 0; }
+  .form-actions {
+    position: sticky;
+    bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));
+    z-index: 18;
+    margin: 0 -10px -10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, .97);
+    border-top: 1px solid var(--line);
+    backdrop-filter: blur(12px);
+  }
+  .right-actions { justify-content: stretch; }
+  .modal-panel.MuiPaper-root { margin: 10px; width: calc(100% - 20px); max-height: calc(100dvh - 20px); }
+  .modal-header.MuiDialogTitle-root { padding: 12px; }
+  .modal-content.MuiDialogContent-root { padding: 12px; }
+  .date-range-popover.MuiPaper-root { width: calc(100vw - 20px); }
+  .date-range-panel { padding: 10px; }
+  .quick-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quick-filter { min-height: 40px; border-radius: 8px; font-size: 12px; }
+  .pagination { justify-content: center; }
+  .pagination .btn { flex: 1 1 0; }
 }
 
 .date-range-filter { min-width: min(320px, 100%); }

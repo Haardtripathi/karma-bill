@@ -4,13 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { getCompanySettings } from "../api/companySettingApi.js";
 
 const links = [
-  { to: "/dashboard", label: "Dashboard", icon: Gauge },
-  { to: "/company-settings", label: "Company Settings", icon: Settings },
-  { to: "/customers", label: "Customers", icon: Users },
-  { to: "/inventory-items", label: "Inventory Items", icon: Package },
-  { to: "/invoices", label: "Invoices", icon: ReceiptText },
-  { to: "/invoices/new", label: "Create Invoice", icon: FilePlus2 },
-  { to: "/reports", label: "Reports", icon: BarChart2 }
+  { to: "/dashboard", label: "Dashboard", icon: Gauge, key: "dashboard" },
+  { to: "/company-settings", label: "Settings", icon: Settings, key: "settings" },
+  { to: "/customers", label: "Customers", icon: Users, key: "customers" },
+  { to: "/inventory-items", label: "Inventory", icon: Package, key: "inventory" },
+  { to: "/invoices", label: "Invoices", icon: ReceiptText, key: "invoices" },
+  { to: "/invoices/new", label: "Create", icon: FilePlus2, key: "create" },
+  { to: "/reports", label: "Reports", icon: BarChart2, key: "reports" }
 ];
 
 export default function Sidebar() {
@@ -27,8 +27,8 @@ export default function Sidebar() {
         />
       </div>
       <nav>
-        {links.map(({ to, label, icon: Icon }) => (
-          <NavLink key={to} to={to} className={({ isActive }) => (isActive ? "active" : "") }>
+        {links.map(({ to, label, icon: Icon, key }) => (
+          <NavLink key={to} to={to} className={({ isActive }) => `nav-${key}${isActive ? " active" : ""}` }>
             <Icon size={18} />
             {label}
           </NavLink>

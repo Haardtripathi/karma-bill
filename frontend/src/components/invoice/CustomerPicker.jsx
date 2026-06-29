@@ -76,7 +76,7 @@ export default function CustomerPicker({ customers = [], selectedCustomerId, qui
           );
         }}
       />
-      <div className="form-grid" style={{ marginTop: "16px" }}>
+      <div className="form-grid customer-detail-grid">
         <Input label="Name" value={quickCustomer.name} onChange={(event) => onQuickChange({ name: event.target.value })} />
         <Input label="Phone" value={quickCustomer.phone} onChange={(event) => onQuickChange({ phone: event.target.value })} />
         <Input label="Email" value={quickCustomer.email || ""} onChange={(event) => onQuickChange({ email: event.target.value })} />

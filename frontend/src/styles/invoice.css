@@ -146,6 +146,9 @@
 .print-toolbar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px; }
 .customer-picker, .vehicle-details, .line-items-section { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; background: #fff; }
 .customer-picker > .field { max-width: 520px; }
+.customer-detail-grid { margin-top: 12px; }
+.invoice-date-grid { margin: 12px 0; }
+.invoice-save-actions { margin-top: 14px; }
 .payment-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; background: #fff; align-items: start; }
 .payment-box .field:last-child .MuiOutlinedInput-root { background: #fff; }
 .totals-box { width: min(360px, 100%); margin-left: auto; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; display: grid; gap: 0; overflow: hidden; }
@@ -193,6 +196,37 @@
   .invoice-summary-layout {
     grid-template-columns: 1fr;
   }
+  .customer-picker, .vehicle-details, .line-items-section, .payment-box {
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .customer-picker > .field { max-width: none; }
+  .customer-detail-grid { margin-top: 10px; }
+  .invoice-date-grid { margin: 10px 0; }
+  .invoice-save-actions { margin-top: 8px; }
+  .payment-box { gap: 10px; }
+  .invoice-summary-totals { order: -1; }
+  .totals-box { border-radius: 8px; }
+  .totals-box div { min-height: 40px; padding: 9px 10px; }
+  .totals-box span { font-size: 12px; }
+  .totals-box strong { font-size: 14px; }
+  .totals-box div:nth-child(3) strong, .totals-box div:nth-child(5) strong { font-size: 18px; }
+  .saved-invoice-actions { align-items: stretch; }
+  .saved-invoice-actions::before { width: 100%; justify-content: center; }
+  .invoice-action-bar {
+    position: sticky;
+    top: 58px;
+    z-index: 19;
+    margin-left: -10px;
+    margin-right: -10px;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    background: rgba(255, 255, 255, .97);
+    backdrop-filter: blur(12px);
+  }
+  .invoice-action-bar .btn { flex: 1 1 calc(50% - 6px); }
+  .whatsapp-status-card { padding: 10px; margin-bottom: 10px; border-radius: 8px; }
 }
 @media (max-width: 560px) { .totals-box { width: 100%; } }
 
