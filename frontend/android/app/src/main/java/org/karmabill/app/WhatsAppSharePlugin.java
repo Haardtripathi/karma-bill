@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import androidx.core.content.FileProvider;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -46,8 +45,11 @@ public class WhatsAppSharePlugin extends Plugin {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType(mimeType);
         intent.putExtra(Intent.EXTRA_STREAM, contentUri);
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] { mimeType });
         if (!text.isEmpty()) {
             intent.putExtra(Intent.EXTRA_TEXT, text);
+            intent.putExtra(Intent.EXTRA_SUBJECT, text);
+            intent.putExtra(Intent.EXTRA_TITLE, text);
         }
 
         String jid = toWhatsappJid(phone);
@@ -56,9 +58,7 @@ public class WhatsAppSharePlugin extends Plugin {
         }
 
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            intent.setClipData(ClipData.newRawUri("invoice", contentUri));
-        }
+        intent.setClipData(ClipData.newRawUri("invoice", contentUri));
 
         if (tryStart(intent, WHATSAPP)) {
             resolve(call, WHATSAPP);
@@ -76,6 +76,10 @@ public class WhatsAppSharePlugin extends Plugin {
         Intent intent = new Intent(baseIntent);
         intent.setPackage(packageName);
         try {
+            Uri streamUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            if (streamUri != null) {
+                getContext().grantUriPermission(packageName, streamUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
             getActivity().startActivity(intent);
             return true;
         } catch (ActivityNotFoundException | SecurityException error) {

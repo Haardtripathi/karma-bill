@@ -1,4 +1,8 @@
+import { Capacitor } from "@capacitor/core";
+
 export const openWhatsappPlaceholder = () => {
+  if (Capacitor.isNativePlatform()) return null;
+
   const popup = window.open("", "_blank");
   if (!popup) return null;
 

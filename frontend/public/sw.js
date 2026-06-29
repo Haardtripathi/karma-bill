@@ -1,4 +1,4 @@
-const CACHE_NAME = "karma-billing-shell-v1";
+const CACHE_NAME = "karma-billing-shell-v2";
 const SHELL_URLS = ["/", "/dashboard", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {

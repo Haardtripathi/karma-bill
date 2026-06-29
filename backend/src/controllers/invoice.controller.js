@@ -8,6 +8,7 @@ const { calculateInvoiceTotals } = require("../services/invoiceCalculation.servi
 const { getNextInvoiceNumber, makeInvoiceCode } = require("../services/invoiceNumber.service");
 const { generatePdfBuffer, generateAndUploadInvoicePdf } = require("../services/invoicePdf.service");
 const { sendInvoiceWhatsapp } = require("../services/whatsapp.service");
+const { isCloudinaryConfigured } = require("../config/cloudinary");
 
 const mongoose = require("mongoose");
 
@@ -360,7 +361,8 @@ const sendInvoiceWhatsappController = asyncHandler(async (req, res) => {
   }
   const company = await CompanySetting.getDefaultSetting();
 
-  if (!invoice.pdfUrl) {
+  const needsShareImage = isCloudinaryConfigured() && !invoice.pdfImageUrl;
+  if (!invoice.pdfUrl || needsShareImage) {
     try {
       const generated = await generateAndUploadInvoicePdf(invoice.toObject(), company.toObject());
       invoice.pdfUrl = generated.url;
@@ -380,7 +382,7 @@ const sendInvoiceWhatsappController = asyncHandler(async (req, res) => {
 
     // ── Link mode: return wa.me URL for frontend to open in new tab ──
     if (result.mode === "link") {
-      return successResponse(res, "WhatsApp link generated", { mode: "link", whatsappUrl: result.whatsappUrl });
+      return successResponse(res, "WhatsApp link generated", { mode: "link", whatsappUrl: result.whatsappUrl, invoice });
     }
 
     // ── Twilio mode: track delivery status ──

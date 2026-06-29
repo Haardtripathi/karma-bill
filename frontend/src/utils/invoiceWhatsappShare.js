@@ -36,9 +36,11 @@ const getInvoiceFileName = (invoice) => {
   return code === "Invoice" ? "Invoice.pdf" : `Invoice_${code}.pdf`;
 };
 
+const getInvoiceImageFileName = (invoice) => getInvoiceFileName(invoice).replace(/\.pdf$/i, ".png");
+
 const blobToBase64 = (blob) => new Promise((resolve, reject) => {
   const reader = new FileReader();
-  reader.onerror = () => reject(new Error("Failed to read invoice PDF"));
+  reader.onerror = () => reject(new Error("Failed to read invoice attachment"));
   reader.onloadend = () => {
     const result = String(reader.result || "");
     resolve(result.includes(",") ? result.split(",").pop() : result);
@@ -54,10 +56,41 @@ const fetchInvoicePdfBlob = async (invoiceId) => {
   return pdfResponse.blob();
 };
 
+const fetchInvoiceImageBlob = async (invoice) => {
+  if (!invoice?.pdfImageUrl) return null;
+
+  const imageResponse = await fetch(invoice.pdfImageUrl);
+  if (!imageResponse.ok) {
+    throw new Error("Failed to fetch invoice image");
+  }
+  return imageResponse.blob();
+};
+
+const getNativeInvoiceAttachment = async ({ invoiceId, invoice }) => {
+  try {
+    const imageBlob = await fetchInvoiceImageBlob(invoice);
+    if (imageBlob) {
+      return {
+        blob: imageBlob,
+        fileName: getInvoiceImageFileName(invoice),
+        mimeType: imageBlob.type || "image/png"
+      };
+    }
+  } catch (error) {
+    console.warn("Invoice image share failed; falling back to PDF", error);
+  }
+
+  const pdfBlob = await fetchInvoicePdfBlob(invoiceId);
+  return {
+    blob: pdfBlob,
+    fileName: getInvoiceFileName(invoice),
+    mimeType: "application/pdf"
+  };
+};
+
 const shareNativeInvoicePdf = async ({ invoiceId, invoice, text, phone }) => {
-  const blob = await fetchInvoicePdfBlob(invoiceId);
+  const { blob, fileName, mimeType } = await getNativeInvoiceAttachment({ invoiceId, invoice });
   const base64 = await blobToBase64(blob);
-  const fileName = getInvoiceFileName(invoice);
   const savedFile = await Filesystem.writeFile({
     path: `whatsapp/${fileName}`,
     data: base64,
@@ -75,7 +108,7 @@ const shareNativeInvoicePdf = async ({ invoiceId, invoice, text, phone }) => {
       phone,
       text,
       fileUrl: savedFile.uri,
-      mimeType: "application/pdf"
+      mimeType
     });
     return;
   } catch (error) {
@@ -117,10 +150,11 @@ export const shareInvoiceWhatsappResult = async ({ result, invoiceId, invoice, p
 
   const text = getWhatsappText(result.whatsappUrl);
   const phone = getWhatsappPhone(result.whatsappUrl);
+  const shareInvoice = result.invoice || invoice;
 
   if (Capacitor.isNativePlatform()) {
     closeWhatsappPlaceholder(popup);
-    await shareNativeInvoicePdf({ invoiceId, invoice, text, phone });
+    await shareNativeInvoicePdf({ invoiceId, invoice: shareInvoice, text, phone });
     return { action: "shared" };
   }
 
