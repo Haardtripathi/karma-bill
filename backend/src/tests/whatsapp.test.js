@@ -62,7 +62,7 @@ describe("WhatsApp invoice", () => {
     expect(payload.to).toBe("whatsapp:+919876543210");
     expect(payload.mediaUrl).toEqual([backendPdfUrl]);
     expect(payload.statusCallback).toBe("https://billing.example.com/api/webhooks/twilio/status");
-    expect(payload.body).toContain("Sale Invoice: KA-107");
+    expect(payload.body).toContain("Sale Invoice : KA-107");
     expect(payload.body).toContain(backendPdfUrl);
   });
 

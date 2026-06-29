@@ -48,10 +48,42 @@ export default function InvoiceDetailsPage() {
   const handleWhatsapp = () => {
     const popup = openWhatsappPlaceholder();
     whatsappMutation.mutate(undefined, {
-      onSuccess: (result) => {
+      onSuccess: async (result) => {
         if (result?.mode === "link" && result?.whatsappUrl) {
+          try {
+            if (navigator.canShare) {
+              const urlObj = new URL(result.whatsappUrl);
+              const text = urlObj.searchParams.get("text") || "";
+              
+              const pdfResponse = await fetch(invoicePdfUrl(id));
+              if (!pdfResponse.ok) throw new Error("Failed to fetch PDF");
+              const blob = await pdfResponse.blob();
+              
+              const fileName = invoice?.invoiceCode ? `Invoice_${invoice.invoiceCode}.pdf` : "Invoice.pdf";
+              const file = new File([blob], fileName, { type: "application/pdf" });
+              
+              if (navigator.canShare({ files: [file] })) {
+                closeWhatsappPlaceholder(popup);
+                await navigator.share({
+                  title: fileName,
+                  text: text,
+                  files: [file],
+                });
+                toast.success("Shared successfully");
+                refresh();
+                return;
+              }
+            }
+          } catch (error) {
+            console.error("Web Share failed or unsupported:", error);
+            if (error.name === "AbortError" || error.message.includes("AbortError")) {
+              closeWhatsappPlaceholder(popup);
+              return;
+            }
+          }
+          
           redirectWhatsappWindow(popup, result.whatsappUrl);
-          toast.success("WhatsApp opened");
+          toast.success("WhatsApp opened (text only)");
         } else {
           closeWhatsappPlaceholder(popup);
           toast.success("WhatsApp message sent");
