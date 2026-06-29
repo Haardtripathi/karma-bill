@@ -27,7 +27,9 @@ const configuredClientOrigins = (process.env.CLIENT_URL || "http://localhost:517
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-const isLocalDevOrigin = (origin = "") => /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+const isLocalDevOrigin = (origin = "") =>
+  /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
+  origin === "capacitor://localhost";
 
 app.use(
   cors({
