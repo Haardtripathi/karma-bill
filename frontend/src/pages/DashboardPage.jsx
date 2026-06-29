@@ -15,7 +15,8 @@ import { formatDate } from "../utils/date.js";
 import { statusClass } from "../utils/invoiceStatus.js";
 import toast from "react-hot-toast";
 import { openPdfUrl } from "../utils/pdfWindow.js";
-import { openWhatsappPlaceholder, redirectWhatsappWindow, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
+import { openWhatsappPlaceholder, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
+import { shareInvoiceWhatsappResult } from "../utils/invoiceWhatsappShare.js";
 
 export default function DashboardPage() {
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
@@ -29,25 +30,25 @@ export default function DashboardPage() {
   const recent = summary.recentInvoices || [];
   const activeRangeLabel = getDateRangeLabel(dateRange.startDate, dateRange.endDate);
 
-  const sendWhatsapp = async (id) => {
+  const sendWhatsapp = async (invoice) => {
+    const id = invoice._id;
     const popup = openWhatsappPlaceholder();
     setLoadingInvoiceId(id);
     try {
       const result = await sendInvoiceWhatsapp(id);
-      if (result?.mode === "link" && result?.whatsappUrl) {
-        redirectWhatsappWindow(popup, result.whatsappUrl);
-        toast.success("WhatsApp opened");
-      } else {
-        closeWhatsappPlaceholder(popup);
-        toast.success("WhatsApp message sent");
-      }
+      const shareResult = await shareInvoiceWhatsappResult({ result, invoiceId: id, invoice, popup });
+      if (shareResult.action === "cancelled") return;
+      if (shareResult.action === "shared") toast.success("Invoice PDF shared");
+      if (shareResult.action === "opened") toast.success("WhatsApp opened (text only)");
+      if (shareResult.action === "sent") toast.success("WhatsApp message sent");
     } catch (error) {
       closeWhatsappPlaceholder(popup);
-      toast.error(error.message);
+      toast.error(error.message || "Share failed");
     } finally {
       setLoadingInvoiceId(null);
     }
   };
+
 
   return (
     <section className="page">
@@ -93,7 +94,7 @@ export default function DashboardPage() {
                     <td className="table-actions">
                       <Link className="btn btn-secondary" to={`/invoices/${invoice._id}`}>View</Link>
                       <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(invoice._id))} />
-                      <WhatsappSendButton onClick={() => sendWhatsapp(invoice._id)} busy={loadingInvoiceId === invoice._id} />
+                      <WhatsappSendButton onClick={() => sendWhatsapp(invoice)} busy={loadingInvoiceId === invoice._id} />
                     </td>
                   </tr>
                 ))}

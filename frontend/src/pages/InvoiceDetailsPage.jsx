@@ -15,11 +15,9 @@ import WhatsappSendButton from "../components/invoice/WhatsappSendButton.jsx";
 import { addInvoicePayment, cancelInvoice, generateInvoicePdf, getInvoicePrintData, invoicePdfUrl, sendInvoiceWhatsapp } from "../api/invoiceApi.js";
 import { toInputDate } from "../utils/date.js";
 import { closePdfPlaceholder, openPdfPlaceholder, openPdfUrl, showPdfUrl } from "../utils/pdfWindow.js";
-import { openWhatsappPlaceholder, redirectWhatsappWindow, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
+import { openWhatsappPlaceholder, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
+import { shareInvoiceWhatsappResult } from "../utils/invoiceWhatsappShare.js";
 import { MessageCircle } from "lucide-react";
-import { Capacitor } from '@capacitor/core';
-import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 
 export default function InvoiceDetailsPage() {
   const { id } = useParams();
@@ -52,78 +50,17 @@ export default function InvoiceDetailsPage() {
     const popup = openWhatsappPlaceholder();
     whatsappMutation.mutate(undefined, {
       onSuccess: async (result) => {
-        if (result?.mode === "link" && result?.whatsappUrl) {
-          try {
-            if (navigator.canShare) {
-              const urlObj = new URL(result.whatsappUrl);
-              const text = urlObj.searchParams.get("text") || "";
-              
-              const pdfResponse = await fetch(invoicePdfUrl(id));
-              if (!pdfResponse.ok) throw new Error("Failed to fetch PDF");
-              const blob = await pdfResponse.blob();
-              
-              const fileName = invoice?.invoiceCode ? `Invoice_${invoice.invoiceCode}.pdf` : "Invoice.pdf";
-              
-              // ── Capacitor Native Share ──
-              if (Capacitor.isNativePlatform()) {
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = async () => {
-                  try {
-                    const base64data = reader.result;
-                    const savedFile = await Filesystem.writeFile({
-                      path: fileName,
-                      data: base64data,
-                      directory: Directory.Cache
-                    });
-                    
-                    closeWhatsappPlaceholder(popup);
-                    await Share.share({
-                      title: fileName,
-                      text: text,
-                      url: savedFile.uri,
-                    });
-                    toast.success("Shared successfully");
-                    refresh();
-                  } catch (e) {
-                    console.error("Native share failed", e);
-                    closeWhatsappPlaceholder(popup);
-                    toast.error("Share failed");
-                  }
-                };
-                return;
-              }
-
-              // ── Web Share API ──
-              const file = new File([blob], fileName, { type: "application/pdf" });
-              
-              if (navigator.canShare({ files: [file] })) {
-                closeWhatsappPlaceholder(popup);
-                await navigator.share({
-                  title: fileName,
-                  text: text,
-                  files: [file],
-                });
-                toast.success("Shared successfully");
-                refresh();
-                return;
-              }
-            }
-          } catch (error) {
-            console.error("Web Share failed or unsupported:", error);
-            if (error.name === "AbortError" || error.message.includes("AbortError")) {
-              closeWhatsappPlaceholder(popup);
-              return;
-            }
-          }
-          
-          redirectWhatsappWindow(popup, result.whatsappUrl);
-          toast.success("WhatsApp opened (text only)");
-        } else {
+        try {
+          const shareResult = await shareInvoiceWhatsappResult({ result, invoiceId: id, invoice, popup });
+          if (shareResult.action === "cancelled") return;
+          if (shareResult.action === "shared") toast.success("Invoice PDF shared");
+          if (shareResult.action === "opened") toast.success("WhatsApp opened (text only)");
+          if (shareResult.action === "sent") toast.success("WhatsApp message sent");
+          refresh();
+        } catch (error) {
           closeWhatsappPlaceholder(popup);
-          toast.success("WhatsApp message sent");
+          toast.error(error.message || "Share failed");
         }
-        refresh();
       },
       onError: (error) => {
         closeWhatsappPlaceholder(popup);

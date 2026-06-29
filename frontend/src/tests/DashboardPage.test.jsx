@@ -16,7 +16,10 @@ vi.mock("../api/dashboardApi.js", () => ({
     recentInvoices: [{ _id: "1", invoiceCode: "KA-107", invoiceDate: "2025-07-11", customer: { name: "Rahul" }, grandTotal: 1500, receivedAmount: 1000, balanceAmount: 500, status: "partial" }]
   }))
 }));
-vi.mock("../api/invoiceApi.js", () => ({ sendInvoiceWhatsapp: vi.fn() }));
+vi.mock("../api/invoiceApi.js", () => ({
+  invoicePdfUrl: vi.fn((id) => `http://localhost:5001/api/invoices/${id}/pdf`),
+  sendInvoiceWhatsapp: vi.fn()
+}));
 
 test("DashboardPage shows loading, stat cards and recent invoices", async () => {
   renderWithProviders(<DashboardPage />, { route: "/dashboard" });

@@ -18,7 +18,8 @@ import { formatCurrency } from "../utils/currency.js";
 import { formatDate } from "../utils/date.js";
 import { statusClass, statuses } from "../utils/invoiceStatus.js";
 import { closePdfPlaceholder, openPdfPlaceholder, openPdfUrl, showPdfUrl } from "../utils/pdfWindow.js";
-import { openWhatsappPlaceholder, redirectWhatsappWindow, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
+import { openWhatsappPlaceholder, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
+import { shareInvoiceWhatsappResult } from "../utils/invoiceWhatsappShare.js";
 
 export default function InvoicesPage() {
   const [search, setSearch] = useState("");
@@ -30,7 +31,8 @@ export default function InvoicesPage() {
   const queryClient = useQueryClient();
   const queryKey = ["invoices", debounced, status, fromDate, toDate, page];
   const { data, isLoading } = useQuery({ queryKey, queryFn: () => getInvoices({ search: debounced, status, fromDate, toDate, page, limit: 10 }) });
-  const afterAction = (message) => { toast.success(message); queryClient.invalidateQueries({ queryKey: ["invoices"] }); queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }); };
+  const refreshInvoiceData = () => { queryClient.invalidateQueries({ queryKey: ["invoices"] }); queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }); };
+  const afterAction = (message) => { toast.success(message); refreshInvoiceData(); };
   const cancelMutation = useMutation({ mutationFn: cancelInvoice, onSuccess: () => afterAction("Invoice cancelled"), onError: (error) => toast.error(error.message) });
   const deleteMutation = useMutation({ mutationFn: deleteInvoice, onSuccess: () => afterAction("Invoice deleted"), onError: (error) => toast.error(error.message) });
   const pdfMutation = useMutation({ mutationFn: generateInvoicePdf });
@@ -50,16 +52,20 @@ export default function InvoicesPage() {
     });
   };
 
-  const handleWhatsapp = (invoiceId) => {
+  const handleWhatsapp = (invoice) => {
     const popup = openWhatsappPlaceholder();
-    whatsappMutation.mutate(invoiceId, {
-      onSuccess: (result) => {
-        if (result?.mode === "link" && result?.whatsappUrl) {
-          redirectWhatsappWindow(popup, result.whatsappUrl);
-          toast.success("WhatsApp opened");
-        } else {
+    whatsappMutation.mutate(invoice._id, {
+      onSuccess: async (result) => {
+        try {
+          const shareResult = await shareInvoiceWhatsappResult({ result, invoiceId: invoice._id, invoice, popup });
+          if (shareResult.action === "cancelled") return;
+          if (shareResult.action === "shared") toast.success("Invoice PDF shared");
+          if (shareResult.action === "opened") toast.success("WhatsApp opened (text only)");
+          if (shareResult.action === "sent") toast.success("WhatsApp message sent");
+          refreshInvoiceData();
+        } catch (error) {
           closeWhatsappPlaceholder(popup);
-          afterAction("WhatsApp message sent");
+          toast.error(error.message || "Share failed");
         }
       },
       onError: (error) => {
@@ -102,7 +108,7 @@ export default function InvoicesPage() {
                     {invoice.status !== "cancelled" && <Link className="btn btn-secondary" to={`/invoices/${invoice._id}/edit`}>Edit</Link>}
                     <PrintButton onClick={() => openPdfUrl(invoicePdfUrl(invoice._id))} />
                     <PdfButton onClick={() => handlePdf(invoice._id)} busy={pdfMutation.isPending && pdfMutation.variables === invoice._id} />
-                    <WhatsappSendButton onClick={() => handleWhatsapp(invoice._id)} busy={whatsappMutation.isPending && whatsappMutation.variables === invoice._id} />
+                    <WhatsappSendButton onClick={() => handleWhatsapp(invoice)} busy={whatsappMutation.isPending && whatsappMutation.variables === invoice._id} />
                     {invoice.status !== "cancelled" && <Button variant="danger" onClick={() => cancelMutation.mutate(invoice._id)} disabled={cancelMutation.isPending && cancelMutation.variables === invoice._id}>Cancel</Button>}
                     <Button variant="ghost" onClick={() => deleteMutation.mutate(invoice._id)} disabled={deleteMutation.isPending && deleteMutation.variables === invoice._id}>Delete</Button>
                   </td>
