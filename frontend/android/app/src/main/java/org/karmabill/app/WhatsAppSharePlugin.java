@@ -52,9 +52,11 @@ public class WhatsAppSharePlugin extends Plugin {
             intent.putExtra(Intent.EXTRA_TITLE, text);
         }
 
-        String jid = toWhatsappJid(phone);
-        if (!jid.isEmpty()) {
-            intent.putExtra("jid", jid);
+        String phoneDigits = normalizePhoneDigits(phone);
+        if (!phoneDigits.isEmpty()) {
+            intent.putExtra("jid", phoneDigits + "@s.whatsapp.net");
+            intent.putExtra(Intent.EXTRA_PHONE_NUMBER, "+" + phoneDigits);
+            intent.putExtra("phone", "+" + phoneDigits);
         }
 
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -87,9 +89,8 @@ public class WhatsAppSharePlugin extends Plugin {
         }
     }
 
-    private String toWhatsappJid(String phone) {
-        String digits = phone == null ? "" : phone.replaceAll("[^0-9]", "");
-        return digits.isEmpty() ? "" : digits + "@s.whatsapp.net";
+    private String normalizePhoneDigits(String phone) {
+        return phone == null ? "" : phone.replaceAll("[^0-9]", "");
     }
 
     private void resolve(PluginCall call, String packageName) {

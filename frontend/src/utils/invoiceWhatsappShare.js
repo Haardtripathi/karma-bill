@@ -5,15 +5,33 @@ import { invoicePdfUrl } from "../api/invoiceApi.js";
 import { closeWhatsappPlaceholder, redirectWhatsappWindow } from "./whatsappWindow.js";
 
 const WhatsAppShare = registerPlugin("WhatsAppShare");
+const DEFAULT_COUNTRY_CODE = "91";
+
+const normalizeWhatsappPhoneDigits = (phone) => {
+  let value = String(phone || "").trim();
+  if (value.toLowerCase().startsWith("whatsapp:")) {
+    value = value.replace(/^whatsapp:/i, "");
+  }
+
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.length === 10) return `${DEFAULT_COUNTRY_CODE}${digits}`;
+  if (digits.startsWith(DEFAULT_COUNTRY_CODE) && digits.length === 12) return digits;
+  return digits.length > 10 ? digits : "";
+};
 
 const getWhatsappPhone = (whatsappUrl) => {
   try {
     const url = new URL(whatsappUrl);
-    return url.pathname.replace(/\D/g, "");
+    const pathPhone = url.hostname.toLowerCase() === "wa.me" ? url.pathname.replace(/\D/g, "") : "";
+    const queryPhone = url.searchParams.get("phone") || "";
+    return normalizeWhatsappPhoneDigits(pathPhone || queryPhone);
   } catch (error) {
     return "";
   }
 };
+
+const getInvoicePhone = (invoice) => normalizeWhatsappPhoneDigits(invoice?.customer?.phone);
 
 const getWhatsappText = (whatsappUrl) => {
   try {
@@ -149,8 +167,8 @@ export const shareInvoiceWhatsappResult = async ({ result, invoiceId, invoice, p
   }
 
   const text = getWhatsappText(result.whatsappUrl);
-  const phone = getWhatsappPhone(result.whatsappUrl);
   const shareInvoice = result.invoice || invoice;
+  const phone = getWhatsappPhone(result.whatsappUrl) || getInvoicePhone(shareInvoice) || getInvoicePhone(invoice);
 
   if (Capacitor.isNativePlatform()) {
     closeWhatsappPlaceholder(popup);
