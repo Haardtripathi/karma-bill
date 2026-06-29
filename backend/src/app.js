@@ -28,7 +28,7 @@ const configuredClientOrigins = (process.env.CLIENT_URL || "http://localhost:517
   .filter(Boolean);
 
 const isLocalDevOrigin = (origin = "") =>
-  /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
   origin === "capacitor://localhost";
 
 app.use(
