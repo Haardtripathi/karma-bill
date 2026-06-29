@@ -59,7 +59,9 @@ export default function InvoicesPage() {
         try {
           const shareResult = await shareInvoiceWhatsappResult({ result, invoiceId: invoice._id, invoice, popup });
           if (shareResult.action === "cancelled") return;
-          if (shareResult.action === "shared") toast.success("Invoice PDF shared");
+          if (shareResult.action === "shared") {
+            toast.success(shareResult.copiedText ? "Invoice PDF shared; message copied" : "Invoice PDF shared");
+          }
           if (shareResult.action === "opened") toast.success("WhatsApp opened (text only)");
           if (shareResult.action === "sent") toast.success("WhatsApp message sent");
           refreshInvoiceData();

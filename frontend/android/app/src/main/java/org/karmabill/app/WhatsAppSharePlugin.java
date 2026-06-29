@@ -1,7 +1,9 @@
 package org.karmabill.app;
 
 import android.content.ActivityNotFoundException;
+import android.content.ClipboardManager;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import androidx.core.content.FileProvider;
@@ -46,10 +48,12 @@ public class WhatsAppSharePlugin extends Plugin {
         intent.setType(mimeType);
         intent.putExtra(Intent.EXTRA_STREAM, contentUri);
         intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] { mimeType });
+        boolean copiedText = false;
         if (!text.isEmpty()) {
             intent.putExtra(Intent.EXTRA_TEXT, text);
             intent.putExtra(Intent.EXTRA_SUBJECT, text);
             intent.putExtra(Intent.EXTRA_TITLE, text);
+            copiedText = copyTextToClipboard(text);
         }
 
         String phoneDigits = normalizePhoneDigits(phone);
@@ -63,11 +67,11 @@ public class WhatsAppSharePlugin extends Plugin {
         intent.setClipData(ClipData.newRawUri("invoice", contentUri));
 
         if (tryStart(intent, WHATSAPP)) {
-            resolve(call, WHATSAPP);
+            resolve(call, WHATSAPP, copiedText);
             return;
         }
         if (tryStart(intent, WHATSAPP_BUSINESS)) {
-            resolve(call, WHATSAPP_BUSINESS);
+            resolve(call, WHATSAPP_BUSINESS, copiedText);
             return;
         }
 
@@ -93,9 +97,20 @@ public class WhatsAppSharePlugin extends Plugin {
         return phone == null ? "" : phone.replaceAll("[^0-9]", "");
     }
 
-    private void resolve(PluginCall call, String packageName) {
+    private boolean copyTextToClipboard(String text) {
+        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard == null) {
+            return false;
+        }
+
+        clipboard.setPrimaryClip(ClipData.newPlainText("invoice message", text));
+        return true;
+    }
+
+    private void resolve(PluginCall call, String packageName, boolean copiedText) {
         JSObject result = new JSObject();
         result.put("packageName", packageName);
+        result.put("copiedText", copiedText);
         call.resolve(result);
     }
 }

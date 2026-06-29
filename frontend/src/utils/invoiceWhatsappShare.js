@@ -124,13 +124,16 @@ const shareNativeInvoicePdf = async ({ invoiceId, invoice, text, phone }) => {
   }
 
   try {
-    await WhatsAppShare.share({
+    const result = await WhatsAppShare.share({
       phone,
       text,
       fileUrl: savedFile.uri,
       mimeType
     });
-    return;
+    return {
+      attachmentType: mimeType,
+      copiedText: Boolean(result?.copiedText)
+    };
   } catch (error) {
     console.warn("Direct WhatsApp share failed; falling back to Android share sheet", error);
   }
@@ -141,6 +144,10 @@ const shareNativeInvoicePdf = async ({ invoiceId, invoice, text, phone }) => {
     files: [savedFile.uri],
     dialogTitle: "Share invoice"
   });
+  return {
+    attachmentType: mimeType,
+    copiedText: false
+  };
 };
 
 const shareWebInvoicePdf = async ({ invoiceId, invoice, text }) => {
@@ -174,8 +181,8 @@ export const shareInvoiceWhatsappResult = async ({ result, invoiceId, invoice, p
 
   if (Capacitor.isNativePlatform()) {
     closeWhatsappPlaceholder(popup);
-    await shareNativeInvoicePdf({ invoiceId, invoice: shareInvoice, text, phone });
-    return { action: "shared" };
+    const nativeResult = await shareNativeInvoicePdf({ invoiceId, invoice: shareInvoice, text, phone });
+    return { action: "shared", ...nativeResult };
   }
 
   try {
