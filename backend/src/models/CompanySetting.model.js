@@ -23,7 +23,7 @@ const defaultCompanySettings = {
   bankBranch: "",
   paymentQrUrl: "",
   paymentQrPublicId: "",
-  invoicePrefix: process.env.INVOICE_PREFIX || "KA",
+  invoicePrefix: process.env.INVOICE_PREFIX !== undefined ? process.env.INVOICE_PREFIX : "KA",
   nextInvoiceNumber: Number(process.env.INVOICE_START_NUMBER || 107),
   isDefault: true
 };

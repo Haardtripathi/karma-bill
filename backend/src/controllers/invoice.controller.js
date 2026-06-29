@@ -202,7 +202,8 @@ const createInvoice = asyncHandler(async (req, res) => {
   const payments = buildInitialPayments(body);
   const totals = calculateInvoiceTotals({ ...body, lineItems, payments });
   const invoiceNumber = await getNextInvoiceNumber();
-  const invoiceCode = makeInvoiceCode(invoiceNumber, company.invoicePrefix || process.env.INVOICE_PREFIX || "KA");
+  const prefix = company.invoicePrefix !== undefined ? company.invoicePrefix : (process.env.INVOICE_PREFIX !== undefined ? process.env.INVOICE_PREFIX : "KA");
+  const invoiceCode = makeInvoiceCode(invoiceNumber, prefix);
 
   await adjustStockDiff([], totals.lineItems);
 
