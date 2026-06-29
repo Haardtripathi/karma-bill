@@ -86,23 +86,25 @@ const fetchInvoiceImageBlob = async (invoice) => {
 
 const getNativeInvoiceAttachment = async ({ invoiceId, invoice }) => {
   try {
-    const imageBlob = await fetchInvoiceImageBlob(invoice);
-    if (imageBlob) {
-      return {
-        blob: imageBlob,
-        fileName: getInvoiceImageFileName(invoice),
-        mimeType: imageBlob.type || "image/png"
-      };
-    }
+    const pdfBlob = await fetchInvoicePdfBlob(invoiceId);
+    return {
+      blob: pdfBlob,
+      fileName: getInvoiceFileName(invoice),
+      mimeType: "application/pdf"
+    };
   } catch (error) {
-    console.warn("Invoice image share failed; falling back to PDF", error);
+    console.warn("Invoice PDF share failed; falling back to image", error);
   }
 
-  const pdfBlob = await fetchInvoicePdfBlob(invoiceId);
+  const imageBlob = await fetchInvoiceImageBlob(invoice);
+  if (!imageBlob) {
+    throw new Error("Invoice PDF and image attachments are unavailable");
+  }
+
   return {
-    blob: pdfBlob,
-    fileName: getInvoiceFileName(invoice),
-    mimeType: "application/pdf"
+    blob: imageBlob,
+    fileName: getInvoiceImageFileName(invoice),
+    mimeType: imageBlob.type || "image/png"
   };
 };
 
