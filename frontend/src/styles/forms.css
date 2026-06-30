@@ -111,6 +111,13 @@
 .empty-state strong { color: var(--ink); font-size: 13px; }
 .pagination { display: flex; justify-content: flex-end; align-items: center; gap: 7px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
 .pagination span { padding: 0 3px; }
+.settings-form > .form-actions {
+  justify-content: flex-end;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+}
 @media (max-width: 720px) {
   .form-grid, .form-grid.two, .upload-grid { grid-template-columns: 1fr; }
   .span-two { grid-column: auto; }
@@ -162,6 +169,10 @@
   .quick-filter { min-height: 40px; border-radius: 8px; font-size: 12px; }
   .pagination { justify-content: center; }
   .pagination .btn { flex: 1 1 0; }
+  .settings-form > .form-actions {
+    margin: 0;
+    border-radius: 8px;
+  }
 }
 
 .date-range-filter { min-width: min(320px, 100%); }

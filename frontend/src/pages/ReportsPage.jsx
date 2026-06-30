@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
+import toast from "react-hot-toast";
 import { formatCurrency } from "../utils/currency.js";
 import { formatDate } from "../utils/date.js";
+import Button from "../components/common/Button.jsx";
+import CollapsiblePanel from "../components/common/CollapsiblePanel.jsx";
 import Loader from "../components/common/Loader.jsx";
 import SearchBar from "../components/common/SearchBar.jsx";
 import DateRangeFilter, { getDateRangeLabel } from "../components/common/DateRangeFilter.jsx";
@@ -35,6 +39,12 @@ export default function ReportsPage() {
     queryFn: () => getItemSalesReport({ search: debouncedSearch, startDate: fromDate, endDate: toDate }),
     enabled: activeTab === "items"
   });
+  const activeQuery = activeTab === "sales" ? salesQuery : activeTab === "customers" ? customerQuery : itemsQuery;
+  const activeReportTitle = activeTab === "sales" ? "Sales Report" : activeTab === "customers" ? "Customer Balances" : "Item Sales";
+  const handleRefresh = async () => {
+    await activeQuery.refetch();
+    toast.success("Report reloaded");
+  };
 
   return (
     <section className="page">
@@ -45,12 +55,12 @@ export default function ReportsPage() {
         </div>
       </div>
       
-      <div className="panel report-filter-panel">
+      <CollapsiblePanel className="report-filter-panel" title="Report Filters" summary={activeRangeLabel} defaultOpen>
         <div className="toolbar-row">
           <SearchBar value={search} onChange={setSearch} placeholder={activeTab === "sales" ? "Search invoices or customers..." : activeTab === "customers" ? "Search customers..." : "Search items..."} />
           <DateRangeFilter label="Report range" startDate={fromDate} endDate={toDate} onChange={({ startDate, endDate }) => { setFromDate(startDate); setToDate(endDate); }} />
         </div>
-      </div>
+      </CollapsiblePanel>
 
       <div className="tabs report-tabs">
         <button className={`btn ${activeTab === "sales" ? "btn-primary" : "btn-secondary"}`} onClick={() => { setActiveTab("sales"); setSearch(""); }}>Sales Report</button>
@@ -58,7 +68,13 @@ export default function ReportsPage() {
         <button className={`btn ${activeTab === "items" ? "btn-primary" : "btn-secondary"}`} onClick={() => { setActiveTab("items"); setSearch(""); }}>Item Sales</button>
       </div>
 
-      <div className="panel report-results-panel">
+      <CollapsiblePanel
+        className="report-results-panel"
+        title={activeReportTitle}
+        summary={activeQuery.isFetching && activeQuery.data ? "Updating..." : activeRangeLabel}
+        actions={<Button variant="secondary" onClick={handleRefresh} disabled={activeQuery.isFetching}><RefreshCw size={15} />{activeQuery.isFetching ? "Reloading" : "Reload"}</Button>}
+        defaultOpen
+      >
         {activeTab === "sales" && (
           <div>
             <div className="report-section-title"><h3>Sales Overview</h3><span>{activeRangeLabel}</span></div>
@@ -161,7 +177,7 @@ export default function ReportsPage() {
             )}
           </div>
         )}
-      </div>
+      </CollapsiblePanel>
     </section>
   );
 }

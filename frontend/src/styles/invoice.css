@@ -179,12 +179,14 @@
 .invoice-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .invoice-preview-heading h3 { margin: 0; font-size: 15px; line-height: 1.2; font-weight: 850; color: var(--ink); }
 .invoice-preview-heading p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
-.customer-picker, .vehicle-details, .line-items-section { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; background: #fff; }
-.customer-picker > .field { max-width: 520px; }
+.customer-picker, .vehicle-details, .line-items-section, .invoice-form-section { background: #fff; }
+.customer-picker .collapsible-content > .field { max-width: 520px; }
 .customer-detail-grid { margin-top: 12px; }
-.invoice-date-grid { margin: 12px 0; }
+.invoice-date-grid { margin: 0; }
 .invoice-save-actions { margin-top: 14px; }
+.invoice-save-actions.form-actions { justify-content: flex-end; }
 .payment-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; background: #fff; align-items: start; }
+.payment-box-flat { border: 0; border-radius: 0; padding: 0; }
 .payment-box .field:last-child .MuiOutlinedInput-root { background: #fff; }
 .totals-box { width: min(360px, 100%); margin-left: auto; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; display: grid; gap: 0; overflow: hidden; }
 .totals-box div { border: 0; border-bottom: 1px solid var(--line); background: #fff; padding: 7px 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; box-shadow: none; }
@@ -249,13 +251,13 @@
   }
   .customer-picker, .vehicle-details, .line-items-section, .payment-box {
     border-radius: 8px;
-    padding: 10px;
   }
-  .customer-picker > .field { max-width: none; }
+  .customer-picker .collapsible-content > .field { max-width: none; }
   .customer-detail-grid { margin-top: 10px; }
-  .invoice-date-grid { margin: 10px 0; }
-  .invoice-save-actions { margin-top: 8px; }
-  .payment-box { gap: 10px; }
+  .invoice-date-grid { margin: 0; }
+  .invoice-save-actions { margin: 8px 0 0; }
+  .payment-box { gap: 10px; padding: 10px; }
+  .payment-box-flat { padding: 0; }
   .invoice-summary-totals { order: -1; }
   .totals-box { border-radius: 8px; }
   .totals-box div { min-height: 40px; padding: 9px 10px; }

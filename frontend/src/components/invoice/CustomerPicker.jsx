@@ -1,5 +1,6 @@
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
+import CollapsiblePanel from "../common/CollapsiblePanel.jsx";
 import Input from "../common/Input.jsx";
 
 const toVehicleNumber = (value) => String(value || "").toUpperCase();
@@ -8,13 +9,12 @@ export default function CustomerPicker({ customers = [], selectedCustomerId, qui
   const selectedCustomer = customers.find((c) => c._id === selectedCustomerId) || null;
 
   return (
-    <div className="panel-section customer-picker">
-      <div className="section-heading">
-        <div>
-          <h2>Customer</h2>
-          <p>Select an existing customer or type the details for this invoice. Vehicle number, KM and contact details stay editable for each visit.</p>
-        </div>
-      </div>
+    <CollapsiblePanel
+      className="customer-picker"
+      title="Customer"
+      description="Select an existing customer or type the details for this invoice. Vehicle number, KM and contact details stay editable for each visit."
+      defaultOpen
+    >
       <Autocomplete
         className="field customer-combobox"
         size="small"
@@ -84,6 +84,6 @@ export default function CustomerPicker({ customers = [], selectedCustomerId, qui
         <Input label="Vehicle KM" value={quickCustomer.vehicleKm} onChange={(event) => onQuickChange({ vehicleKm: event.target.value })} />
         <Input label="Address" value={quickCustomer.address} onChange={(event) => onQuickChange({ address: event.target.value })} />
       </div>
-    </div>
+    </CollapsiblePanel>
   );
 }

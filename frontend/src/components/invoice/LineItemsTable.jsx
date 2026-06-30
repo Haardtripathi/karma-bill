@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import Button from "../common/Button.jsx";
+import CollapsiblePanel from "../common/CollapsiblePanel.jsx";
 import FileUpload from "../common/FileUpload.jsx";
 import ImagePreview from "../common/ImagePreview.jsx";
 import Input from "../common/Input.jsx";
@@ -35,14 +36,14 @@ export default function LineItemsTable({ lineItems, setLineItems, inventoryItems
   const removeImage = (index) => updateRow(index, { imageUrl: "", imagePublicId: "", imageNote: "" });
 
   return (
-    <div className="panel-section line-items-section">
-      <div className="section-heading">
-        <div>
-          <h2>Line Items</h2>
-          <p>Select an inventory item or type a custom item name in the same field.</p>
-        </div>
-        <Button onClick={addRow}>Add item</Button>
-      </div>
+    <CollapsiblePanel
+      className="line-items-section"
+      title="Line Items"
+      description="Select an inventory item or type a custom item name in the same field."
+      summary={`${lineItems.length} item${lineItems.length === 1 ? "" : "s"}`}
+      actions={<Button onClick={addRow}>Add item</Button>}
+      defaultOpen
+    >
       <div className="table-scroll line-items-scroll">
         <table className="data-table line-items-table">
           <thead>
@@ -89,6 +90,6 @@ export default function LineItemsTable({ lineItems, setLineItems, inventoryItems
           </tbody>
         </table>
       </div>
-    </div>
+    </CollapsiblePanel>
   );
 }

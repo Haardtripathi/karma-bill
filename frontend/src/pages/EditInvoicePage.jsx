@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import Button from "../components/common/Button.jsx";
+import CollapsiblePanel from "../components/common/CollapsiblePanel.jsx";
 import Input from "../components/common/Input.jsx";
 import Textarea from "../components/common/Textarea.jsx";
 import Loader from "../components/common/Loader.jsx";
@@ -16,7 +17,7 @@ import { getCustomers } from "../api/customerApi.js";
 import { getInventoryItems } from "../api/inventoryItemApi.js";
 import { getInvoice, updateInvoice } from "../api/invoiceApi.js";
 import { uploadInvoiceImage } from "../api/uploadApi.js";
-import { roundMoney } from "../utils/currency.js";
+import { formatCurrency, roundMoney } from "../utils/currency.js";
 import { combineDateAndTime, dateOnlyToPayload, toInputDate, toInputTimeParts, toOptionalInputDate } from "../utils/date.js";
 
 const emptyCustomer = { name: "", phone: "", email: "", address: "", vehicleNumber: "", vehicleKm: "" };
@@ -131,7 +132,14 @@ export default function EditInvoicePage() {
         lineItems: form.lineItems.map(buildLineItemPayload) 
       } 
     }),
-    onSuccess: () => { toast.success("Invoice updated"); queryClient.invalidateQueries({ queryKey: ["invoices"] }); queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }); navigate("/invoices"); },
+    onSuccess: () => {
+      toast.success("Invoice updated");
+      queryClient.removeQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoice", id] });
+      queryClient.invalidateQueries({ queryKey: ["invoice-print-data", id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      navigate("/invoices");
+    },
     onError: (error) => toast.error(error.message)
   });
   const uploadImage = async (file, index) => {
@@ -149,25 +157,29 @@ export default function EditInvoicePage() {
   return (
     <section className="page">
       <div className="page-header"><div><h2>Edit Invoice {invoice?.invoiceCode}</h2><p>Invoice number stays unchanged.</p></div><Link className="btn btn-secondary" to={"/invoices/" + id}>Back</Link></div>
-      <div className="panel page">
+      <div className="page invoice-editor-stack">
         <CustomerPicker customers={customers} selectedCustomerId={selectedCustomerId} quickCustomer={quickCustomer} onSelect={handleCustomerSelect} onQuickChange={(patch) => setQuickCustomer((current) => ({ ...current, ...patch }))} />
-        <div className="form-grid invoice-date-grid">
-          <DateTimeFields dateLabel="Invoice date" dateValue={form.invoiceDate} timeValue={form.invoiceTime} onDateChange={(invoiceDate) => setForm((current) => ({ ...current, invoiceDate }))} onTimeChange={(invoiceTime) => setForm((current) => ({ ...current, invoiceTime }))} />
-          <DateTimeFields dateLabel="Delivery date" dateValue={form.deliveryDate} timeValue={form.deliveryTime} onDateChange={(deliveryDate) => setForm((current) => ({ ...current, deliveryDate }))} onTimeChange={(deliveryTime) => setForm((current) => ({ ...current, deliveryTime }))} />
-          <Input label="Discount" type="number" min="0" value={form.discountAmount} onChange={(event) => setForm((current) => ({ ...current, discountAmount: event.target.value }))} />
-        </div>
-        <VehicleDetailsFields value={form.vehicleDetails} onChange={(vehicleDetails) => setForm((current) => ({ ...current, vehicleDetails }))} />
+        <CollapsiblePanel className="invoice-form-section" title="Dates & Discount" description="Invoice date, delivery date and any discount." defaultOpen>
+          <div className="form-grid invoice-date-grid">
+            <DateTimeFields dateLabel="Invoice date" dateValue={form.invoiceDate} timeValue={form.invoiceTime} onDateChange={(invoiceDate) => setForm((current) => ({ ...current, invoiceDate }))} onTimeChange={(invoiceTime) => setForm((current) => ({ ...current, invoiceTime }))} />
+            <DateTimeFields dateLabel="Delivery date" dateValue={form.deliveryDate} timeValue={form.deliveryTime} onDateChange={(deliveryDate) => setForm((current) => ({ ...current, deliveryDate }))} onTimeChange={(deliveryTime) => setForm((current) => ({ ...current, deliveryTime }))} />
+            <Input label="Discount" type="number" min="0" value={form.discountAmount} onChange={(event) => setForm((current) => ({ ...current, discountAmount: event.target.value }))} />
+          </div>
+        </CollapsiblePanel>
+        <VehicleDetailsFields value={form.vehicleDetails} onChange={(vehicleDetails) => setForm((current) => ({ ...current, vehicleDetails }))} defaultOpen={Boolean(form.vehicleDetails.carName || form.vehicleDetails.carBrand || form.vehicleDetails.fuelType)} />
         <LineItemsTable lineItems={form.lineItems} setLineItems={(updater) => setForm((current) => ({ ...current, lineItems: typeof updater === "function" ? updater(current.lineItems) : updater }))} inventoryItems={itemsData?.items || []} onUploadImage={uploadImage} />
-        <PaymentBox paymentMode={form.paymentMode} receivedAmount={form.receivedAmount} onChange={(patch) => setForm((current) => ({ ...current, ...patch }))} />
-        <div className="invoice-summary-layout">
-          <div className="invoice-summary-desc">
-            <Textarea label="Remarks" value={form.remarks} onChange={(event) => setForm((current) => ({ ...current, remarks: event.target.value }))} />
+        <CollapsiblePanel className="invoice-form-section invoice-payment-section" title="Payment & Summary" summary={formatCurrency(subTotal)} defaultOpen>
+          <PaymentBox className="payment-box-flat" paymentMode={form.paymentMode} receivedAmount={form.receivedAmount} onChange={(patch) => setForm((current) => ({ ...current, ...patch }))} />
+          <div className="invoice-summary-layout">
+            <div className="invoice-summary-desc">
+              <Textarea label="Remarks" value={form.remarks} onChange={(event) => setForm((current) => ({ ...current, remarks: event.target.value }))} />
+            </div>
+            <div className="invoice-summary-totals">
+              <InvoiceTotalsBox subTotal={subTotal} discountAmount={form.discountAmount} receivedAmount={form.receivedAmount} />
+            </div>
           </div>
-          <div className="invoice-summary-totals">
-            <InvoiceTotalsBox subTotal={subTotal} discountAmount={form.discountAmount} receivedAmount={form.receivedAmount} />
-          </div>
-        </div>
-        <div className="form-actions right-actions invoice-save-actions"><Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>Save changes</Button></div>
+        </CollapsiblePanel>
+        <div className="panel form-actions right-actions invoice-save-actions"><Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>Save changes</Button></div>
       </div>
     </section>
   );

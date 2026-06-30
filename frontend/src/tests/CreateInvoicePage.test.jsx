@@ -68,6 +68,7 @@ test("selected customer stays editable and saves invoice-specific vehicle detail
   expect(screen.getByLabelText("Vehicle Number")).toHaveValue("GJ02BB2222");
   fireEvent.change(screen.getByLabelText("Vehicle KM"), { target: { value: "48200" } });
   fireEvent.change(screen.getByLabelText("Delivery date"), { target: { value: "2026-06-22T14:30" } });
+  await user.click(screen.getByRole("button", { name: /Vehicle Details/i }));
   fireEvent.change(screen.getByLabelText("Car name"), { target: { value: "City" } });
   fireEvent.change(screen.getByLabelText("Car brand"), { target: { value: "Honda" } });
   fireEvent.change(screen.getByLabelText("Year of manufacture"), { target: { value: "2021" } });

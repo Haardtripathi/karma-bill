@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import Button from "../components/common/Button.jsx";
+import CollapsiblePanel from "../components/common/CollapsiblePanel.jsx";
 import Input from "../components/common/Input.jsx";
 import Textarea from "../components/common/Textarea.jsx";
 import Select from "../components/common/Select.jsx";
@@ -97,9 +98,8 @@ export default function CompanySettingsPage() {
   return (
     <section className="page">
       <div className="page-header"><div><h2>Company Settings</h2><p>Business details used on every invoice.</p></div></div>
-      <form className="panel page" onSubmit={(event) => { event.preventDefault(); saveMutation.mutate(form); }}>
-        <div className="panel-section">
-          <div className="section-heading"><h2>Business Details</h2></div>
+      <form className="page settings-form" onSubmit={(event) => { event.preventDefault(); saveMutation.mutate(form); }}>
+        <CollapsiblePanel title="Business Details" summary={form.businessName || "Business"} defaultOpen>
           <div className="form-grid two">
             <Input label="Business name" value={form.businessName || ""} onChange={(event) => set({ businessName: event.target.value })} />
             <Input label="Invoice prefix" value={form.invoicePrefix || ""} onChange={(event) => set({ invoicePrefix: event.target.value })} />
@@ -116,10 +116,9 @@ export default function CompanySettingsPage() {
             <Input className="span-two" label="Maps link" value={form.mapsLink || ""} onChange={(event) => set({ mapsLink: event.target.value })} />
             <Textarea className="span-two" label="Default terms" value={form.defaultTerms || ""} onChange={(event) => set({ defaultTerms: event.target.value })} />
           </div>
-        </div>
+        </CollapsiblePanel>
 
-        <div className="panel-section">
-          <div className="section-heading"><h2>Payment Details</h2></div>
+        <CollapsiblePanel title="Payment Details" summary={form.upiId || form.bankName || "Optional"} defaultOpen={false}>
           <div className="form-grid two">
             <Input label="UPI ID" value={form.upiId || ""} onChange={(event) => set({ upiId: event.target.value })} />
             <Input label="Account holder" value={form.bankAccountName || ""} onChange={(event) => set({ bankAccountName: event.target.value })} />
@@ -128,34 +127,36 @@ export default function CompanySettingsPage() {
             <Input label="IFSC code" value={form.bankIfsc || ""} onChange={(event) => set({ bankIfsc: event.target.value })} />
             <Input label="Branch" value={form.bankBranch || ""} onChange={(event) => set({ bankBranch: event.target.value })} />
           </div>
-        </div>
+        </CollapsiblePanel>
 
-        <div className="upload-grid">
-          <div className="upload-card">
-            <div>
-              <h3>Logo</h3>
-              <p>Shown on invoice header.</p>
+        <CollapsiblePanel title="Uploads" summary="Logo, signature, QR" defaultOpen={false}>
+          <div className="upload-grid">
+            <div className="upload-card">
+              <div>
+                <h3>Logo</h3>
+                <p>Shown on invoice header.</p>
+              </div>
+              <ImagePreview src={form.logoUrl || "/logo.webp"} alt="Company logo" compact />
+              <FileUpload label={form.logoUrl ? "Replace logo" : "Logo upload"} onChange={(file) => logoMutation.mutate(file)} />
             </div>
-            <ImagePreview src={form.logoUrl || "/logo.webp"} alt="Company logo" compact />
-            <FileUpload label={form.logoUrl ? "Replace logo" : "Logo upload"} onChange={(file) => logoMutation.mutate(file)} />
-          </div>
-          <div className="upload-card">
-            <div>
-              <h3>Signature</h3>
-              <p>Shown in authorized signatory area.</p>
+            <div className="upload-card">
+              <div>
+                <h3>Signature</h3>
+                <p>Shown in authorized signatory area.</p>
+              </div>
+              {form.signatureImageUrl && <ImagePreview src={form.signatureImageUrl} alt="Company signature" compact />}
+              <FileUpload label={form.signatureImageUrl ? "Replace signature" : "Signature upload"} onChange={(file) => signatureMutation.mutate(file)} />
             </div>
-            {form.signatureImageUrl && <ImagePreview src={form.signatureImageUrl} alt="Company signature" compact />}
-            <FileUpload label={form.signatureImageUrl ? "Replace signature" : "Signature upload"} onChange={(file) => signatureMutation.mutate(file)} />
-          </div>
-          <div className="upload-card">
-            <div>
-              <h3>Payment QR</h3>
-              <p>Shown for UPI invoices.</p>
+            <div className="upload-card">
+              <div>
+                <h3>Payment QR</h3>
+                <p>Shown for UPI invoices.</p>
+              </div>
+              {form.paymentQrUrl && <ImagePreview src={form.paymentQrUrl} alt="Payment QR code" compact />}
+              <FileUpload label={form.paymentQrUrl ? "Replace QR" : "QR upload"} onChange={(file) => paymentQrMutation.mutate(file)} />
             </div>
-            {form.paymentQrUrl && <ImagePreview src={form.paymentQrUrl} alt="Payment QR code" compact />}
-            <FileUpload label={form.paymentQrUrl ? "Replace QR" : "QR upload"} onChange={(file) => paymentQrMutation.mutate(file)} />
           </div>
-        </div>
+        </CollapsiblePanel>
         <div className="form-actions"><Button type="submit" disabled={saveMutation.isPending}>Save</Button></div>
       </form>
     </section>

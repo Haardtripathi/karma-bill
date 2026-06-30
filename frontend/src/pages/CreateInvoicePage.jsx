@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import Button from "../components/common/Button.jsx";
+import CollapsiblePanel from "../components/common/CollapsiblePanel.jsx";
 import Input from "../components/common/Input.jsx";
 import Textarea from "../components/common/Textarea.jsx";
 import Loader from "../components/common/Loader.jsx";
@@ -16,7 +17,7 @@ import { getCustomers } from "../api/customerApi.js";
 import { getInventoryItems } from "../api/inventoryItemApi.js";
 import { createInvoice } from "../api/invoiceApi.js";
 import { uploadInvoiceImage } from "../api/uploadApi.js";
-import { roundMoney } from "../utils/currency.js";
+import { formatCurrency, roundMoney } from "../utils/currency.js";
 import { combineDateAndTime, dateOnlyToPayload, toInputDate, toInputTimeParts } from "../utils/date.js";
 
 const emptyCustomer = { name: "", phone: "", email: "", address: "", vehicleNumber: "", vehicleKm: "" };
@@ -58,7 +59,14 @@ export default function CreateInvoicePage() {
   const subTotal = useMemo(() => lineItems.reduce((sum, item) => sum + roundMoney(Number(item.quantity || 0) * Number(item.unitPrice || 0)), 0), [lineItems]);
   const createMutation = useMutation({
     mutationFn: createInvoice,
-    onSuccess: () => { toast.success("Invoice saved"); queryClient.invalidateQueries({ queryKey: ["invoices"] }); queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }); navigate("/invoices"); },
+    onSuccess: (invoice) => {
+      const savedStatus = invoice?.status || "unpaid";
+      toast.success(savedStatus === "draft" ? "Draft saved" : "Invoice saved");
+      queryClient.removeQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      if (invoice?._id) queryClient.setQueryData(["invoice", invoice._id], invoice);
+      navigate(savedStatus === "draft" ? "/invoices?status=draft" : "/invoices");
+    },
     onError: (error) => toast.error(error.message)
   });
   const uploadImage = async (file, index) => {
@@ -111,25 +119,29 @@ export default function CreateInvoicePage() {
   return (
     <section className="page">
       <div className="page-header"><div><h2>Create Invoice</h2><p>Select customer, add service/parts, collect payment and save.</p></div><Link className="btn btn-secondary" to="/invoices">Back</Link></div>
-      <div className="panel page">
+      <div className="page invoice-editor-stack">
         <CustomerPicker customers={customers} selectedCustomerId={selectedCustomerId} quickCustomer={quickCustomer} onSelect={handleCustomerSelect} onQuickChange={(patch) => setQuickCustomer((current) => ({ ...current, ...patch }))} />
-        <div className="form-grid invoice-date-grid">
-          <DateTimeFields dateLabel="Invoice date" dateValue={invoiceDate} timeValue={invoiceTime} onDateChange={setInvoiceDate} onTimeChange={setInvoiceTime} />
-          <DateTimeFields dateLabel="Delivery date" dateValue={deliveryDate} timeValue={deliveryTime} onDateChange={setDeliveryDate} onTimeChange={setDeliveryTime} />
-          <Input label="Discount" type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} />
-        </div>
+        <CollapsiblePanel className="invoice-form-section" title="Dates & Discount" description="Invoice date, delivery date and any discount." defaultOpen>
+          <div className="form-grid invoice-date-grid">
+            <DateTimeFields dateLabel="Invoice date" dateValue={invoiceDate} timeValue={invoiceTime} onDateChange={setInvoiceDate} onTimeChange={setInvoiceTime} />
+            <DateTimeFields dateLabel="Delivery date" dateValue={deliveryDate} timeValue={deliveryTime} onDateChange={setDeliveryDate} onTimeChange={setDeliveryTime} />
+            <Input label="Discount" type="number" min="0" value={discountAmount} onChange={(event) => setDiscountAmount(event.target.value)} />
+          </div>
+        </CollapsiblePanel>
         <VehicleDetailsFields value={vehicleDetails} onChange={setVehicleDetails} />
         <LineItemsTable lineItems={lineItems} setLineItems={setLineItems} inventoryItems={inventoryItems} onUploadImage={uploadImage} />
-        <PaymentBox paymentMode={paymentMode} receivedAmount={receivedAmount} onChange={(patch) => { if (patch.paymentMode !== undefined) setPaymentMode(patch.paymentMode); if (patch.receivedAmount !== undefined) setReceivedAmount(patch.receivedAmount); }} />
-        <div className="invoice-summary-layout">
-          <div className="invoice-summary-desc">
-            <Textarea label="Remarks" value={remarks} onChange={(event) => setRemarks(event.target.value)} />
+        <CollapsiblePanel className="invoice-form-section invoice-payment-section" title="Payment & Summary" summary={formatCurrency(subTotal)} defaultOpen>
+          <PaymentBox className="payment-box-flat" paymentMode={paymentMode} receivedAmount={receivedAmount} onChange={(patch) => { if (patch.paymentMode !== undefined) setPaymentMode(patch.paymentMode); if (patch.receivedAmount !== undefined) setReceivedAmount(patch.receivedAmount); }} />
+          <div className="invoice-summary-layout">
+            <div className="invoice-summary-desc">
+              <Textarea label="Remarks" value={remarks} onChange={(event) => setRemarks(event.target.value)} />
+            </div>
+            <div className="invoice-summary-totals">
+              <InvoiceTotalsBox subTotal={subTotal} discountAmount={discountAmount} receivedAmount={receivedAmount} />
+            </div>
           </div>
-          <div className="invoice-summary-totals">
-            <InvoiceTotalsBox subTotal={subTotal} discountAmount={discountAmount} receivedAmount={receivedAmount} />
-          </div>
-        </div>
-        <div className="form-actions right-actions invoice-save-actions">
+        </CollapsiblePanel>
+        <div className="panel form-actions right-actions invoice-save-actions">
           <Button variant="secondary" onClick={() => save("draft")} disabled={createMutation.isPending}>Save draft</Button>
           <Button onClick={() => save("unpaid")} disabled={createMutation.isPending}>Save invoice</Button>
         </div>

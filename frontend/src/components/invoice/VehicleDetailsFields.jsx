@@ -1,3 +1,4 @@
+import CollapsiblePanel from "../common/CollapsiblePanel.jsx";
 import Input from "../common/Input.jsx";
 import Select from "../common/Select.jsx";
 
@@ -13,18 +14,17 @@ export const emptyVehicleDetails = {
   insuranceExpiryDate: ""
 };
 
-export default function VehicleDetailsFields({ value = emptyVehicleDetails, onChange }) {
+export default function VehicleDetailsFields({ value = emptyVehicleDetails, onChange, defaultOpen = false }) {
   const form = { ...emptyVehicleDetails, ...value };
   const set = (patch) => onChange({ ...form, ...patch });
 
   return (
-    <div className="panel-section vehicle-details">
-      <div className="section-heading">
-        <div>
-          <h2>Vehicle Details</h2>
-          <p>Car and service details for this invoice.</p>
-        </div>
-      </div>
+    <CollapsiblePanel
+      className="vehicle-details"
+      title="Vehicle Details"
+      description="Car and service details for this invoice."
+      defaultOpen={defaultOpen}
+    >
       <div className="form-grid">
         <Input label="Car name" value={form.carName} onChange={(event) => set({ carName: event.target.value })} />
         <Input label="Car brand" value={form.carBrand} onChange={(event) => set({ carBrand: event.target.value })} />
@@ -37,6 +37,6 @@ export default function VehicleDetailsFields({ value = emptyVehicleDetails, onCh
         <Input label="PUC expiry" type="date" value={form.pucExpiryDate} onChange={(event) => set({ pucExpiryDate: event.target.value })} />
         <Input label="Insurance expiry" type="date" value={form.insuranceExpiryDate} onChange={(event) => set({ insuranceExpiryDate: event.target.value })} />
       </div>
-    </div>
+    </CollapsiblePanel>
   );
 }

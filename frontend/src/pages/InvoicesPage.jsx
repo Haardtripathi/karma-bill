@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import Button from "../components/common/Button.jsx";
+import CollapsiblePanel from "../components/common/CollapsiblePanel.jsx";
 import Input from "../components/common/Input.jsx";
 import Select from "../components/common/Select.jsx";
 import SearchBar from "../components/common/SearchBar.jsx";
@@ -22,16 +24,22 @@ import { openWhatsappPlaceholder, closeWhatsappPlaceholder } from "../utils/what
 import { getWhatsappShareSuccessMessage, shareInvoiceWhatsappResult } from "../utils/invoiceWhatsappShare.js";
 
 export default function InvoicesPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialStatus = searchParams.get("status") || "";
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(statuses.includes(initialStatus) ? initialStatus : "");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [page, setPage] = useState(1);
   const debounced = useDebounce(search);
   const queryClient = useQueryClient();
   const queryKey = ["invoices", debounced, status, fromDate, toDate, page];
-  const { data, isLoading } = useQuery({ queryKey, queryFn: () => getInvoices({ search: debounced, status, fromDate, toDate, page, limit: 10 }) });
-  const refreshInvoiceData = () => { queryClient.invalidateQueries({ queryKey: ["invoices"] }); queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }); };
+  const { data, isLoading, isFetching, refetch } = useQuery({ queryKey, queryFn: () => getInvoices({ search: debounced, status, fromDate, toDate, page, limit: 10 }) });
+  const refreshInvoiceData = () => {
+    queryClient.invalidateQueries({ queryKey: ["invoices"], refetchType: "none" });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+    return refetch();
+  };
   const afterAction = (message) => { toast.success(message); refreshInvoiceData(); };
   const cancelMutation = useMutation({ mutationFn: cancelInvoice, onSuccess: () => afterAction("Invoice cancelled"), onError: (error) => toast.error(error.message) });
   const deleteMutation = useMutation({ mutationFn: deleteInvoice, onSuccess: () => afterAction("Invoice deleted"), onError: (error) => toast.error(error.message) });
@@ -76,17 +84,38 @@ export default function InvoicesPage() {
       }
     });
   };
+  const updateStatus = (nextStatus) => {
+    setStatus(nextStatus);
+    setPage(1);
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextStatus) nextParams.set("status", nextStatus);
+    else nextParams.delete("status");
+    setSearchParams(nextParams, { replace: true });
+  };
+  const handleManualRefresh = async () => {
+    await refreshInvoiceData();
+    toast.success("Invoices reloaded");
+  };
+  const activeFilterCount = [search, status, fromDate, toDate].filter(Boolean).length;
+  const resultSummary = data?.total !== undefined ? `${data.total} invoice${data.total === 1 ? "" : "s"}` : "Invoices";
 
   return (
     <section className="page">
       <div className="page-header"><div><h2>Invoices</h2><p>Filter, print, send, cancel and track balances.</p></div><Link className="btn btn-primary" to="/invoices/new">Create Invoice</Link></div>
-      <div className="panel page">
+      <CollapsiblePanel title="Filters" summary={activeFilterCount ? `${activeFilterCount} active` : "All invoices"} defaultOpen>
         <div className="toolbar-row">
           <SearchBar value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Search invoices" />
-          <Select label="Status" value={status} onChange={(event) => setStatus(event.target.value)}><option value="">All</option>{statuses.map((item) => <option key={item} value={item}>{item}</option>)}</Select>
+          <Select label="Status" value={status} onChange={(event) => updateStatus(event.target.value)}><option value="">All</option>{statuses.map((item) => <option key={item} value={item}>{item}</option>)}</Select>
           <Input label="From date" type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} />
           <Input label="To date" type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} />
         </div>
+      </CollapsiblePanel>
+      <CollapsiblePanel
+        title="Invoice List"
+        summary={isFetching && data ? "Updating..." : resultSummary}
+        actions={<Button variant="secondary" onClick={handleManualRefresh} disabled={isFetching}><RefreshCw size={15} />{isFetching ? "Reloading" : "Reload"}</Button>}
+        defaultOpen
+      >
         {isLoading ? <Loader /> : !data?.items?.length ? <EmptyState title="No invoices found" /> : (
           <div className="table-scroll">
             <table className="data-table">
@@ -126,7 +155,7 @@ export default function InvoicesPage() {
           </div>
         )}
         <Pagination page={data?.page} pages={data?.pages} onPage={setPage} />
-      </div>
+      </CollapsiblePanel>
     </section>
   );
 }

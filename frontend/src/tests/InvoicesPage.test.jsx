@@ -61,3 +61,23 @@ test("InvoicesPage PDF button generates and opens the backend PDF stream", async
   await waitFor(() => expect(popup.location.href).toBe("http://localhost:5001/api/invoices/inv1/pdf"));
   expect(popup.close).not.toHaveBeenCalled();
 });
+
+test("InvoicesPage reload button fetches the current list again", async () => {
+  const user = userEvent.setup();
+
+  renderWithProviders(<InvoicesPage />, { route: "/invoices" });
+
+  expect(await screen.findByText("KA-107")).toBeInTheDocument();
+  mocks.getInvoices.mockClear();
+
+  await user.click(screen.getByRole("button", { name: /Reload/i }));
+
+  await waitFor(() => expect(mocks.getInvoices).toHaveBeenCalledTimes(1));
+});
+
+test("InvoicesPage opens with draft status from the URL", async () => {
+  renderWithProviders(<InvoicesPage />, { route: "/invoices?status=draft" });
+
+  await waitFor(() => expect(mocks.getInvoices).toHaveBeenCalledWith(expect.objectContaining({ status: "draft" })));
+  expect(await screen.findByLabelText("Status")).toHaveTextContent("draft");
+});
