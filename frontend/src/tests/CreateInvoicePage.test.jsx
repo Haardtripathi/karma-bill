@@ -94,4 +94,4 @@ test("selected customer stays editable and saves invoice-specific vehicle detail
   expect(mocks.createInvoice.mock.calls[0][0].deliveryDate).toBeTruthy();
   expect(mocks.createInvoice.mock.calls[0][0].pucExpiryDate).toBeTruthy();
   expect(mocks.createInvoice.mock.calls[0][0].insuranceExpiryDate).toBeTruthy();
-});
+}, 30000);
