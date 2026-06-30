@@ -7,6 +7,8 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "test": "jest --runInBand",
+    "normalize:invoices": "node src/scripts/normalizeInvoiceNumbers.js",
+    "normalize:invoices:execute": "node src/scripts/normalizeInvoiceNumbers.js --execute",
     "seed:company": "node src/seed/seedCompanySettings.js",
     "seed:items": "node src/seed/seedInventoryItems.js",
     "postinstall": "puppeteer browsers install chrome"

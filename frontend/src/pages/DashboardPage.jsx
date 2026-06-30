@@ -16,7 +16,7 @@ import { statusClass } from "../utils/invoiceStatus.js";
 import toast from "react-hot-toast";
 import { openPdfUrl } from "../utils/pdfWindow.js";
 import { openWhatsappPlaceholder, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
-import { shareInvoiceWhatsappResult } from "../utils/invoiceWhatsappShare.js";
+import { getWhatsappShareSuccessMessage, shareInvoiceWhatsappResult } from "../utils/invoiceWhatsappShare.js";
 
 export default function DashboardPage() {
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
@@ -39,7 +39,7 @@ export default function DashboardPage() {
       const shareResult = await shareInvoiceWhatsappResult({ result, invoiceId: id, invoice, popup });
       if (shareResult.action === "cancelled") return;
       if (shareResult.action === "shared") {
-        toast.success(shareResult.copiedText ? "Invoice PDF shared; message copied" : "Invoice PDF shared");
+        toast.success(getWhatsappShareSuccessMessage(shareResult));
       }
       if (shareResult.action === "opened") toast.success("WhatsApp opened (text only)");
       if (shareResult.action === "sent") toast.success("WhatsApp message sent");

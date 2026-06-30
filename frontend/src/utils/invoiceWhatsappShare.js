@@ -6,6 +6,19 @@ import { closeWhatsappPlaceholder, redirectWhatsappWindow } from "./whatsappWind
 
 const WhatsAppShare = registerPlugin("WhatsAppShare");
 const DEFAULT_COUNTRY_CODE = "91";
+const SHARE_ATTACHMENT_OPTIONS = new Set(["auto", "pdf", "image"]);
+
+const getShareAttachmentMode = () => {
+  const mode = String(import.meta.env.VITE_WHATSAPP_SHARE_ATTACHMENT || "auto").trim().toLowerCase();
+  return SHARE_ATTACHMENT_OPTIONS.has(mode) ? mode : "auto";
+};
+
+const WHATSAPP_SHARE_ATTACHMENT = getShareAttachmentMode();
+
+export const getWhatsappShareSuccessMessage = ({ attachmentType, copiedText } = {}) => {
+  const label = String(attachmentType || "").toLowerCase().startsWith("image/") ? "image" : "PDF";
+  return copiedText ? `Invoice ${label} shared; message copied` : `Invoice ${label} shared`;
+};
 
 const normalizeWhatsappPhoneDigits = (phone) => {
   let value = String(phone || "").trim();
@@ -84,21 +97,19 @@ const fetchInvoiceImageBlob = async (invoice) => {
   return imageResponse.blob();
 };
 
-const getNativeInvoiceAttachment = async ({ invoiceId, invoice }) => {
-  try {
-    const pdfBlob = await fetchInvoicePdfBlob(invoiceId);
-    return {
-      blob: pdfBlob,
-      fileName: getInvoiceFileName(invoice),
-      mimeType: "application/pdf"
-    };
-  } catch (error) {
-    console.warn("Invoice PDF share failed; falling back to image", error);
-  }
+const getPdfAttachment = async ({ invoiceId, invoice }) => {
+  const pdfBlob = await fetchInvoicePdfBlob(invoiceId);
+  return {
+    blob: pdfBlob,
+    fileName: getInvoiceFileName(invoice),
+    mimeType: "application/pdf"
+  };
+};
 
+const getImageAttachment = async (invoice) => {
   const imageBlob = await fetchInvoiceImageBlob(invoice);
   if (!imageBlob) {
-    throw new Error("Invoice PDF and image attachments are unavailable");
+    throw new Error("Invoice image attachment is unavailable");
   }
 
   return {
@@ -108,8 +119,26 @@ const getNativeInvoiceAttachment = async ({ invoiceId, invoice }) => {
   };
 };
 
-const shareNativeInvoicePdf = async ({ invoiceId, invoice, text, phone }) => {
-  const { blob, fileName, mimeType } = await getNativeInvoiceAttachment({ invoiceId, invoice });
+const getInvoiceAttachment = async ({ invoiceId, invoice }) => {
+  if (WHATSAPP_SHARE_ATTACHMENT === "pdf") {
+    return getPdfAttachment({ invoiceId, invoice });
+  }
+
+  if (WHATSAPP_SHARE_ATTACHMENT === "image") {
+    return getImageAttachment(invoice);
+  }
+
+  try {
+    return await getPdfAttachment({ invoiceId, invoice });
+  } catch (error) {
+    console.warn("Invoice PDF share failed; falling back to image", error);
+  }
+
+  return getImageAttachment(invoice);
+};
+
+const shareNativeInvoiceAttachment = async ({ invoiceId, invoice, text, phone }) => {
+  const { blob, fileName, mimeType } = await getInvoiceAttachment({ invoiceId, invoice });
   const base64 = await blobToBase64(blob);
   const savedFile = await Filesystem.writeFile({
     path: `whatsapp/${fileName}`,
@@ -150,12 +179,11 @@ const shareNativeInvoicePdf = async ({ invoiceId, invoice, text, phone }) => {
   };
 };
 
-const shareWebInvoicePdf = async ({ invoiceId, invoice, text }) => {
+const shareWebInvoiceAttachment = async ({ invoiceId, invoice, text }) => {
   if (!navigator.share) return false;
 
-  const blob = await fetchInvoicePdfBlob(invoiceId);
-  const fileName = getInvoiceFileName(invoice);
-  const file = new File([blob], fileName, { type: "application/pdf" });
+  const { blob, fileName, mimeType } = await getInvoiceAttachment({ invoiceId, invoice });
+  const file = new File([blob], fileName, { type: mimeType });
 
   if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
     return false;
@@ -166,7 +194,7 @@ const shareWebInvoicePdf = async ({ invoiceId, invoice, text }) => {
     text,
     files: [file]
   });
-  return true;
+  return { attachmentType: mimeType };
 };
 
 export const shareInvoiceWhatsappResult = async ({ result, invoiceId, invoice, popup }) => {
@@ -181,22 +209,22 @@ export const shareInvoiceWhatsappResult = async ({ result, invoiceId, invoice, p
 
   if (Capacitor.isNativePlatform()) {
     closeWhatsappPlaceholder(popup);
-    const nativeResult = await shareNativeInvoicePdf({ invoiceId, invoice: shareInvoice, text, phone });
+    const nativeResult = await shareNativeInvoiceAttachment({ invoiceId, invoice: shareInvoice, text, phone });
     return { action: "shared", ...nativeResult };
   }
 
   try {
-    const shared = await shareWebInvoicePdf({ invoiceId, invoice, text });
+    const shared = await shareWebInvoiceAttachment({ invoiceId, invoice: shareInvoice, text });
     if (shared) {
       closeWhatsappPlaceholder(popup);
-      return { action: "shared" };
+      return { action: "shared", ...shared };
     }
   } catch (error) {
     if (error?.name === "AbortError" || error?.message?.includes("AbortError")) {
       closeWhatsappPlaceholder(popup);
       return { action: "cancelled" };
     }
-    console.error("Invoice PDF share failed", error);
+    console.error("Invoice attachment share failed", error);
   }
 
   redirectWhatsappWindow(popup, result.whatsappUrl);

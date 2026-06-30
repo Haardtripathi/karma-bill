@@ -57,7 +57,14 @@ The frontend reads:
 ```text
 VITE_API_BASE_URL=http://localhost:5001/api
 VITE_BACKEND_PUBLIC_URL=http://localhost:5001
+VITE_WHATSAPP_SHARE_ATTACHMENT=auto
 ```
+
+`VITE_WHATSAPP_SHARE_ATTACHMENT` controls the WhatsApp file shared by the frontend/native app:
+
+- `auto`: try PDF first, then fall back to the generated invoice image.
+- `pdf`: share only the invoice PDF.
+- `image`: share only the generated invoice image (`pdfImageUrl`).
 
 ## Local MongoDB Setup
 

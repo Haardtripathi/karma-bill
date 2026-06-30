@@ -18,7 +18,7 @@ import { formatCurrency } from "../utils/currency.js";
 import { statusClass } from "../utils/invoiceStatus.js";
 import { closePdfPlaceholder, openPdfPlaceholder, openPdfUrl, showPdfUrl } from "../utils/pdfWindow.js";
 import { openWhatsappPlaceholder, closeWhatsappPlaceholder } from "../utils/whatsappWindow.js";
-import { shareInvoiceWhatsappResult } from "../utils/invoiceWhatsappShare.js";
+import { getWhatsappShareSuccessMessage, shareInvoiceWhatsappResult } from "../utils/invoiceWhatsappShare.js";
 import { CalendarDays, CarFront, IndianRupee, MessageCircle, ReceiptText, UserRound, WalletCards } from "lucide-react";
 
 const displayValue = (value) => value || "Not added";
@@ -91,7 +91,7 @@ export default function InvoiceDetailsPage() {
           const shareResult = await shareInvoiceWhatsappResult({ result, invoiceId: id, invoice, popup });
           if (shareResult.action === "cancelled") return;
           if (shareResult.action === "shared") {
-            toast.success(shareResult.copiedText ? "Invoice PDF shared; message copied" : "Invoice PDF shared");
+            toast.success(getWhatsappShareSuccessMessage(shareResult));
           }
           if (shareResult.action === "opened") toast.success("WhatsApp opened (text only)");
           if (shareResult.action === "sent") toast.success("WhatsApp message sent");

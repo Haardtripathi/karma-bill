@@ -1,6 +1,8 @@
 const Counter = require("../models/Counter.model");
 
-const getInvoicePrefix = () => process.env.INVOICE_PREFIX !== undefined ? process.env.INVOICE_PREFIX : "KA";
+const normalizeInvoicePrefix = (prefix = "") => String(prefix ?? "").trim();
+
+const getInvoicePrefix = () => process.env.INVOICE_PREFIX !== undefined ? normalizeInvoicePrefix(process.env.INVOICE_PREFIX) : "KA";
 
 const getNextInvoiceNumber = async () => {
   const startNumber = Number(process.env.INVOICE_START_NUMBER || 107);
@@ -30,10 +32,14 @@ const getNextInvoiceNumber = async () => {
   }
 };
 
-const makeInvoiceCode = (invoiceNumber, prefix = getInvoicePrefix()) => prefix ? `${prefix}-${invoiceNumber}` : `${invoiceNumber}`;
+const makeInvoiceCode = (invoiceNumber, prefix = getInvoicePrefix()) => {
+  const normalizedPrefix = normalizeInvoicePrefix(prefix);
+  return normalizedPrefix ? `${normalizedPrefix}-${invoiceNumber}` : `${invoiceNumber}`;
+};
 
 module.exports = {
   getNextInvoiceNumber,
   makeInvoiceCode,
-  getInvoicePrefix
+  getInvoicePrefix,
+  normalizeInvoicePrefix
 };

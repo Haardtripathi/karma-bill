@@ -1,7 +1,11 @@
 const { MongoClient } = require('mongodb');
+require('dotenv').config();
 
 async function readInvoice() {
-  const uri = "mongodb+srv://haardtripathi:Kakarot%401231@cluster0.5eph1ze.mongodb.net/db1";
+  const uri = process.env.MONGO_URI;
+  if (!uri) {
+    throw new Error("MONGO_URI is required");
+  }
   const client = new MongoClient(uri);
 
   try {

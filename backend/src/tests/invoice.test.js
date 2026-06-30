@@ -1,5 +1,6 @@
 const request = require("supertest");
 const app = require("../app");
+const CompanySetting = require("../models/CompanySetting.model");
 
 const customer = { name: "Kiran Shah", phone: "9876543210", vehicleNumber: "gj01zz1111", vehicleKm: "45000" };
 
@@ -37,6 +38,17 @@ describe("Invoice API", () => {
     expect(res.body.data.status).toBe("partial");
   });
 
+  test("creates numeric invoice code when company prefix is blank", async () => {
+    const setting = await CompanySetting.getDefaultSetting();
+    setting.invoicePrefix = "";
+    await setting.save();
+
+    const res = await createInvoice();
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.data.invoiceNumber).toBe(107);
+    expect(res.body.data.invoiceCode).toBe("107");
+  });
 
   test("creates invoice from existing customer with edited invoice vehicle snapshot", async () => {
     const createdCustomer = await request(app).post("/api/customers").send({
