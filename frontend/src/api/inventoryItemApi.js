@@ -10,3 +10,9 @@ export const uploadInventoryItemImage = ({ id, file }) => {
   formData.append("image", file);
   return api.post(`/inventory-items/${id}/image`, formData).then((res) => res.data);
 };
+
+export const getInventoryItemTypes = (params = {}) => api.get("/inventory-item-types", { params }).then((res) => res.data);
+export const getInventoryItemType = (id) => api.get(`/inventory-item-types/${id}`).then((res) => res.data);
+export const createInventoryItemType = (payload) => api.post("/inventory-item-types", payload).then((res) => res.data);
+export const updateInventoryItemType = ({ id, payload }) => api.put(`/inventory-item-types/${id}`, payload).then((res) => res.data);
+export const deleteInventoryItemType = (id) => api.delete(`/inventory-item-types/${id}`).then((res) => res.data);

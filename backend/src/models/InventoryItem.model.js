@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const inventoryItemSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    type: { type: String, enum: ["service", "part", "other"], default: "service" },
+    type: { type: String, required: true, trim: true, default: "service" },
     unit: { type: String, trim: true, default: "pcs" },
     defaultPrice: { type: Number, min: 0, default: 0 },
     stockQty: { type: Number, min: 0, default: 0 },

@@ -8,6 +8,7 @@ const path = require("path");
 const companySettingRoutes = require("./routes/companySetting.routes");
 const customerRoutes = require("./routes/customer.routes");
 const inventoryItemRoutes = require("./routes/inventoryItem.routes");
+const inventoryItemTypeRoutes = require("./routes/inventoryItemType.routes");
 const invoiceRoutes = require("./routes/invoice.routes");
 const uploadRoutes = require("./routes/upload.routes");
 const whatsappRoutes = require("./routes/whatsapp.routes");
@@ -66,6 +67,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/company-settings", companySettingRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/inventory-items", inventoryItemRoutes);
+app.use("/api/inventory-item-types", inventoryItemTypeRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/whatsapp", whatsappRoutes);

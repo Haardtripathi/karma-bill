@@ -2,7 +2,7 @@ const { z } = require("zod");
 
 const inventoryItemBody = z.object({
   name: z.string().trim().min(1, "Item name is required"),
-  type: z.enum(["service", "part", "other"]).default("service"),
+  type: z.string().trim().min(1, "Item type is required").max(60, "Item type must be 60 characters or less").default("service"),
   unit: z.string().optional().default("pcs"),
   defaultPrice: z.coerce.number().min(0, "Default price must be 0 or more").default(0),
   stockQty: z.coerce.number().min(0, "Stock quantity must be 0 or more").default(0),

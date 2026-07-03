@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const connectDB = require("../config/db");
 const InventoryItem = require("../models/InventoryItem.model");
+const { ensureInventoryItemType, ensureInventoryItemTypes } = require("../services/inventoryItemType.service");
 
 const items = [
   ["PETROL AND CNG SERVICE WITH WASHING", "service", 1250],
@@ -18,7 +19,9 @@ const items = [
 
 const run = async () => {
   await connectDB();
+  await ensureInventoryItemTypes();
   for (const [name, type, defaultPrice] of items) {
+    await ensureInventoryItemType(type);
     await InventoryItem.findOneAndUpdate(
       { name },
       { name, type, defaultPrice, unit: "pcs", stockQty: type === "service" ? 0 : 20, isActive: true },

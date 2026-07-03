@@ -2,6 +2,7 @@ const InventoryItem = require("../models/InventoryItem.model");
 const asyncHandler = require("../utils/asyncHandler");
 const { successResponse } = require("../utils/apiResponse");
 const { uploadImage } = require("../services/cloudinary.service");
+const { ensureInventoryItemType } = require("../services/inventoryItemType.service");
 
 const listInventoryItems = asyncHandler(async (req, res) => {
   const page = Math.max(Number(req.query.page || 1), 1);
@@ -25,6 +26,7 @@ const listInventoryItems = asyncHandler(async (req, res) => {
 });
 
 const createInventoryItem = asyncHandler(async (req, res) => {
+  await ensureInventoryItemType(req.validated.body.type);
   const item = await InventoryItem.create(req.validated.body);
   successResponse(res, "Inventory item created", item, 201);
 });
@@ -40,6 +42,7 @@ const getInventoryItemById = asyncHandler(async (req, res) => {
 });
 
 const updateInventoryItem = asyncHandler(async (req, res) => {
+  if (req.validated.body.type) await ensureInventoryItemType(req.validated.body.type);
   const item = await InventoryItem.findByIdAndUpdate(req.params.id, req.validated.body, { new: true, runValidators: true });
   if (!item) {
     const error = new Error("Inventory item not found");
