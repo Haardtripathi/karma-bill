@@ -21,6 +21,7 @@ import {
 
 const blank = { name: "", type: "service", unit: "pcs", defaultPrice: 0, stockQty: 0, lowStockQty: 0, description: "" };
 const fallbackTypes = ["service", "part", "other"];
+const normalizeTypeName = (value) => value.trim().replace(/\s+/g, " ").toLowerCase();
 
 export default function InventoryItemFormPage() {
   const { id } = useParams();
@@ -31,9 +32,10 @@ export default function InventoryItemFormPage() {
   const { data, isLoading } = useQuery({ queryKey: ["inventory-item", id], queryFn: () => getInventoryItem(id), enabled: Boolean(id) });
   const { data: typeData } = useQuery({ queryKey: ["inventory-item-types"], queryFn: () => getInventoryItemTypes() });
   useEffect(() => { if (data) setForm({ ...blank, ...data }); }, [data]);
-  const typeOptions = Array.from(new Set([...(typeData?.items?.map((itemType) => itemType.name) || fallbackTypes), form.type].filter(Boolean)));
+  const savedTypeOptions = typeData?.items?.map((itemType) => itemType.name) || fallbackTypes;
+  const typeOptions = Array.from(new Set(savedTypeOptions.filter(Boolean)));
   const trimmedType = form.type.trim();
-  const selectedTypeExists = typeOptions.some((name) => name.toLowerCase() === trimmedType.toLowerCase());
+  const selectedTypeExists = savedTypeOptions.some((name) => normalizeTypeName(name) === normalizeTypeName(trimmedType));
   const saveMutation = useMutation({
     mutationFn: async () => {
       const saved = id ? await updateInventoryItem({ id, payload: form }) : await createInventoryItem(form);
