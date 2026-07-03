@@ -1,6 +1,8 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
 import { Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import Button from "../components/common/Button.jsx";
@@ -24,13 +26,12 @@ export default function InventoryItemFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const typeListId = useId();
   const [form, setForm] = useState(blank);
   const [imageFile, setImageFile] = useState(null);
   const { data, isLoading } = useQuery({ queryKey: ["inventory-item", id], queryFn: () => getInventoryItem(id), enabled: Boolean(id) });
   const { data: typeData } = useQuery({ queryKey: ["inventory-item-types"], queryFn: () => getInventoryItemTypes() });
   useEffect(() => { if (data) setForm({ ...blank, ...data }); }, [data]);
-  const typeOptions = typeData?.items?.map((itemType) => itemType.name) || fallbackTypes;
+  const typeOptions = Array.from(new Set([...(typeData?.items?.map((itemType) => itemType.name) || fallbackTypes), form.type].filter(Boolean)));
   const trimmedType = form.type.trim();
   const selectedTypeExists = typeOptions.some((name) => name.toLowerCase() === trimmedType.toLowerCase());
   const saveMutation = useMutation({
@@ -65,10 +66,58 @@ export default function InventoryItemFormPage() {
         <div className="form-grid two">
           <Input label="Name" required value={form.name} onChange={(event) => set({ name: event.target.value })} />
           <div className="field-with-action">
-            <Input label="Type" required value={form.type} inputProps={{ list: typeListId, maxLength: 60 }} onChange={(event) => set({ type: event.target.value })} />
-            <datalist id={typeListId}>
-              {typeOptions.map((type) => <option key={type} value={type} />)}
-            </datalist>
+            <Autocomplete
+              className="field type-combobox"
+              freeSolo
+              openOnFocus
+              forcePopupIcon
+              selectOnFocus
+              handleHomeEndKeys
+              clearOnBlur={false}
+              options={typeOptions}
+              value={form.type || ""}
+              inputValue={form.type || ""}
+              onChange={(event, value) => set({ type: value || "" })}
+              onInputChange={(event, value) => set({ type: value })}
+              slotProps={{
+                paper: {
+                  sx: {
+                    mt: 0.5,
+                    border: "1px solid #dce3ec",
+                    borderRadius: "6px",
+                    boxShadow: "0 14px 34px rgba(15, 23, 42, .14)"
+                  }
+                },
+                listbox: {
+                  sx: {
+                    py: 0.5,
+                    "& .MuiAutocomplete-option": {
+                      minHeight: 36,
+                      px: 1.5,
+                      py: 0.75,
+                      fontSize: 13
+                    }
+                  }
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Type"
+                  required
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  slotProps={{
+                    ...params.slotProps,
+                    htmlInput: {
+                      ...params.slotProps?.htmlInput,
+                      maxLength: 60
+                    }
+                  }}
+                />
+              )}
+            />
             <Button variant="secondary" onClick={handleAddType} disabled={!trimmedType || selectedTypeExists || createTypeMutation.isPending}><Plus size={15} />Add type</Button>
           </div>
           <Input label="Unit" value={form.unit} onChange={(event) => set({ unit: event.target.value })} />
