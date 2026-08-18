@@ -4,6 +4,6 @@
   "webDir": "dist",
   "server": {
     "androidScheme": "https",
-    "allowNavigation": ["karma-bill.onrender.com"]
+    "allowNavigation": ["karma-bill-p21c.onrender.com"]
   }
 }

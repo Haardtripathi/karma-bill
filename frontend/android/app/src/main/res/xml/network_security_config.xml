@@ -8,6 +8,6 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
-        <domain includeSubdomains="true">karma-bill.onrender.com</domain>
+        <domain includeSubdomains="true">karma-bill-p21c.onrender.com</domain>
     </domain-config>
 </network-security-config>
